@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/ai/gemma_service.dart';
 import 'features/diagnosis/diagnosis_screen.dart';
-import 'features/onboarding/model_download_screen.dart';
+import 'features/onboarding/app_setup_screen.dart';
 import 'theme/app_theme.dart';
 
 class CropSightApp extends StatelessWidget {
@@ -20,7 +20,7 @@ class CropSightApp extends StatelessWidget {
   }
 }
 
-/// Decides where to send the user on launch: download the model, or diagnose.
+/// Decides where to send the user on launch: run first-time setup, or diagnose.
 class _StartupGate extends StatefulWidget {
   const _StartupGate();
 
@@ -50,7 +50,7 @@ class _StartupGateState extends State<_StartupGate> {
       );
     }
     if (_installed == false) {
-      return ModelDownloadScreen(
+      return AppSetupScreen(
         onReady: () => setState(() => _installed = true),
       );
     }

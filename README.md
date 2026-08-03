@@ -19,8 +19,9 @@ the reference knowledge all live on the device.
 
 - **Truly offline inference.** A multimodal language model (Gemma3n) runs
   locally through [`flutter_gemma`](https://pub.dev/packages/flutter_gemma) on
-  the LiteRT-LM engine. After a one-time model download, the diagnosis path
-  never touches the network.
+  the MediaPipe engine. The model ships bundled as a native asset, so the app
+  never touches the network to install it — offline from the very first
+  launch.
 - **Vision, not just text.** The farmer's input is a photo. The model reads the
   image directly — no separate cloud vision API.
 - **Grounded, not guessed.** A vision pass turns the photo into a query, the app
@@ -44,8 +45,9 @@ On device (works fully offline)
 ## Tech stack
 
 - **Flutter** — one codebase, Android first.
-- **flutter_gemma 0.15+** — on-device Gemma3n E2B (multimodal), embeddings, and
-  a SQLite vector store, all local.
+- **flutter_gemma 1.5+** (with `flutter_gemma_mediapipe` and
+  `flutter_gemma_embeddings`) — on-device Gemma3n E2B (multimodal) and
+  embeddings, all local.
 - **Gemma3n E2B** — smallest Gemma variant with image input.
 - **provider** — light state management.
 
@@ -60,22 +62,24 @@ On device (works fully offline)
    ```
    Then apply the changes in [`android/SETUP.md`](android/SETUP.md).
 
-2. **Add your Hugging Face token** (Gemma3n is a gated model — the token is
-   free):
-   ```bash
-   cp config.json.example config.json
-   # paste your token from https://huggingface.co/settings/tokens
-   # and request access on the Gemma3n model page
-   ```
+2. **Place the bundled model files.** The model and embedder ship as native
+   assets, not a runtime download — see
+   [`android/app/src/main/assets/models/README.md`](android/app/src/main/assets/models/README.md)
+   for the exact files and sources (one of them, the Gemma3n model, is gated on
+   Hugging Face and needs a free token + license acceptance to fetch once;
+   `config.json.example` is still there for that one-time fetch, but the app
+   itself never needs it at runtime).
 
 3. **Fetch packages and run:**
    ```bash
    flutter pub get
-   flutter run --dart-define-from-file=config.json
+   flutter run
    ```
 
-4. On first launch the app downloads the model once, then drops you into the
-   camera. Turn on airplane mode and diagnose a leaf — it still works.
+4. First launch does a one-time, fully-local setup (no network) — copying the
+   bundled model into app storage and indexing the knowledge base — then drops
+   you into the camera. Turn on airplane mode before you even install it and
+   diagnose a leaf — it still works.
 
 ## Roadmap
 

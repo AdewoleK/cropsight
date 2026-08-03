@@ -25,14 +25,12 @@ class GemmaService {
     return FlutterGemma.isModelInstalled(CropSightModel.fileName);
   }
 
-  /// Download + install the model a single time (0..100 progress).
-  Future<void> installModel({
-    required void Function(int percent) onProgress,
-    String? hfToken,
-  }) async {
+  /// Install the model from its bundled native asset (no network, no
+  /// meaningful progress — flutter_gemma copies it out of the APK into app
+  /// storage once, then this is a no-op on later launches).
+  Future<void> installModel() async {
     await FlutterGemma.installModel(modelType: CropSightModel.modelType)
-        .fromNetwork(CropSightModel.downloadUrl, token: hfToken)
-        .withProgress(onProgress)
+        .fromBundled(CropSightModel.fileName)
         .install();
   }
 

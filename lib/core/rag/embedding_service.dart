@@ -5,7 +5,7 @@ import 'embedding_catalog.dart';
 /// Thin wrapper around flutter_gemma's on-device text embedder.
 ///
 /// Uses the confirmed embedder API:
-///   FlutterGemma.installEmbedder().modelFromNetwork(..).tokenizerFromNetwork(..).install()
+///   FlutterGemma.installEmbedder().modelFromBundled(..).tokenizerFromBundled(..).install()
 ///   FlutterGemma.getActiveEmbedder()  ->  embedder.generateEmbedding(text) -> List<double>
 ///
 /// Requires `flutter_gemma_embeddings` to be added as a dependency and a
@@ -14,19 +14,13 @@ class EmbeddingService {
   EmbeddingService._();
   static final EmbeddingService instance = EmbeddingService._();
 
-  /// Download + install the embedding model + tokenizer once.
-  Future<void> installEmbedder({
-    void Function(int percent)? onProgress,
-  }) async {
-    final builder = FlutterGemma.installEmbedder()
-        .modelFromNetwork(EmbeddingCatalog.modelUrl,
-            token: EmbeddingCatalog.token)
-        .tokenizerFromNetwork(EmbeddingCatalog.tokenizerUrl);
-    if (onProgress != null) {
-      builder.withModelProgress(onProgress);
-      builder.withTokenizerProgress(onProgress);
-    }
-    await builder.install();
+  /// Install the embedding model + tokenizer from their bundled native
+  /// assets (no network, no meaningful progress).
+  Future<void> installEmbedder() async {
+    await FlutterGemma.installEmbedder()
+        .modelFromBundled(EmbeddingCatalog.modelFileName)
+        .tokenizerFromBundled(EmbeddingCatalog.tokenizerFileName)
+        .install();
   }
 
   /// Embed a single string into a 768-dim vector.

@@ -31,6 +31,14 @@ android {
         }
     }
 
+    // The bundled model/embedder files under assets/models/ are large binary
+    // blobs read via a raw byte copy (see flutter_gemma's BundledSource
+    // handling) — don't let AAPT zip-deflate them, which would slow the build
+    // and inflate/deflate a multi-GB file for no benefit.
+    androidResources {
+        noCompress += listOf("task", "tflite", "model")
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
