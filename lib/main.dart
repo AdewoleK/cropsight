@@ -4,6 +4,7 @@ import 'package:flutter_gemma_embeddings/flutter_gemma_embeddings.dart';
 import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 
 import 'app.dart';
+import 'core/sync/sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,10 @@ void main() async {
     inferenceEngines: [const MediaPipeEngine()],
     embeddingBackends: [const LiteRtEmbeddingBackend()],
   );
+
+  // Opportunistic sync: fully disabled unless SYNC_ENDPOINT is configured.
+  // Just registers a connectivity listener — no network access on its own.
+  SyncService.instance.start();
 
   runApp(const CropSightApp());
 }

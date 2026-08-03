@@ -27,6 +27,11 @@ dependencies:
   # Filesystem paths for the bundled/downloaded model.
   path_provider: ^2.1.4
 
+  # Phase 4: connectivity detection for opportunistic sync.
+  connectivity_plus: ^7.3.1
+  # Phase 4: posting anonymised results to a sync endpoint.
+  http: ^1.6.0
+
 dev_dependencies:
   flutter_lints: ^4.0.0
   flutter_test:

@@ -1,3 +1,4 @@
 {
-  "HUGGINGFACE_TOKEN": ""
+  "HUGGINGFACE_TOKEN": "",
+  "SYNC_ENDPOINT": ""
 }

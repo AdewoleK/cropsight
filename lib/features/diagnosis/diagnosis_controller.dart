@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../core/ai/gemma_service.dart';
 import '../../core/rag/local_vector_index.dart';
 import '../../core/rag/rag_service.dart';
+import '../../core/sync/diagnosis_result.dart';
+import '../../core/sync/sync_service.dart';
 
 enum DiagnosisStatus { idle, looking, retrieving, answering, done, error }
 
@@ -87,6 +91,13 @@ Answer with these short sections:
       }
 
       status = DiagnosisStatus.done;
+      unawaited(SyncService.instance.enqueueResult(DiagnosisResult(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        timestamp: DateTime.now(),
+        description: description,
+        answer: answer,
+        citedCards: sources.map(CitedCard.fromRetrieved).toList(),
+      )));
     } catch (e) {
       error = e.toString();
       status = DiagnosisStatus.error;

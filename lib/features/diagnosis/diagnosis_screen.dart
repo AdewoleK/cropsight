@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../sync/sync_status_screen.dart';
 import 'diagnosis_controller.dart';
 
 /// The core screen: photograph a leaf, get an offline, grounded diagnosis.
@@ -48,6 +49,13 @@ class _DiagnosisView extends StatelessWidget {
               const SnackBar(
                 content: Text('This diagnosis runs entirely on your phone.'),
               ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Sync status',
+            icon: const Icon(Icons.cloud_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SyncStatusScreen()),
             ),
           ),
         ],
