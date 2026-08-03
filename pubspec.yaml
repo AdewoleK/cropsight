@@ -1,0 +1,38 @@
+name: cropsight
+description: "CropSight — offline crop-disease diagnosis powered by on-device Gemma3n. Works with no internet, on any modern Android phone."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # On-device LLM inference (Gemma3n multimodal, embeddings, SQLite vector store).
+  flutter_gemma: ^0.15.0
+  # On-device text embeddings for RAG (Gecko / EmbeddingGemma).
+  flutter_gemma_embeddings: ^0.15.0
+
+  # Camera + gallery capture of the leaf photo.
+  image_picker: ^1.1.2
+
+  # Lightweight state management for the diagnosis flow.
+  provider: ^6.1.2
+
+  # Filesystem paths for the bundled/downloaded model.
+  path_provider: ^2.1.4
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Phase 3: bundled RAG knowledge base (crop-disease reference cards).
+    - assets/knowledge/

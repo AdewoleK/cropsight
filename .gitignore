@@ -1,0 +1,18 @@
+# Never commit the Hugging Face token
+config.json
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+*.iml
+.idea/
+.vscode/
+
+# Model files (too large for git)
+*.task
+*.litertlm
+*.bin
