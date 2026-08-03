@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter_gemma/flutter_gemma.dart';
-import 'package:flutter_gemma/core/api/flutter_gemma.dart';
 
 import 'model_catalog.dart';
 

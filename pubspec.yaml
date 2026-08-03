@@ -12,9 +12,9 @@ dependencies:
     sdk: flutter
 
   # On-device LLM inference (Gemma3n multimodal, embeddings, SQLite vector store).
-  flutter_gemma: ^0.15.0
+  flutter_gemma: ^1.5.1
   # On-device text embeddings for RAG (Gecko / EmbeddingGemma).
-  flutter_gemma_embeddings: ^0.15.0
+  flutter_gemma_embeddings: ^1.0.4
 
   # Camera + gallery capture of the leaf photo.
   image_picker: ^1.1.2

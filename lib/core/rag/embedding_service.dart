@@ -23,7 +23,8 @@ class EmbeddingService {
             token: EmbeddingCatalog.token)
         .tokenizerFromNetwork(EmbeddingCatalog.tokenizerUrl);
     if (onProgress != null) {
-      builder.withProgress(onProgress);
+      builder.withModelProgress(onProgress);
+      builder.withTokenizerProgress(onProgress);
     }
     await builder.install();
   }

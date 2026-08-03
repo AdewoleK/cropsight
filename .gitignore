@@ -16,3 +16,7 @@ pubspec.lock
 *.task
 *.litertlm
 *.bin
+
+# Gradle/Kotlin build caches
+android/.kotlin/
+android/.gradle/

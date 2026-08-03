@@ -61,7 +61,7 @@ class LocalVectorIndex {
     }
 
     // Cold build: embed each card.
-    final cards = KnowledgeBase.cards;
+    const cards = KnowledgeBase.cards;
     for (var i = 0; i < cards.length; i++) {
       final vec = await EmbeddingService.instance.embed(cards[i].embeddingText);
       _vectors[cards[i].id] = vec;

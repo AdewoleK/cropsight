@@ -16,7 +16,7 @@ void main() {
   FlutterGemma.initialize(
     huggingFaceToken: token.isNotEmpty ? token : null,
     maxDownloadRetries: 10,
-    embeddingBackends: [LiteRtEmbeddingBackend()],
+    embeddingBackends: [const LiteRtEmbeddingBackend()],
   );
 
   runApp(const CropSightApp());
