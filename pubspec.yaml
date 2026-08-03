@@ -15,6 +15,8 @@ dependencies:
   flutter_gemma: ^1.5.1
   # On-device text embeddings for RAG (Gecko / EmbeddingGemma).
   flutter_gemma_embeddings: ^1.0.4
+  # MediaPipe (.task) inference engine backing the Gemma3n E2B model.
+  flutter_gemma_mediapipe: ^1.0.4
 
   # Camera + gallery capture of the leaf photo.
   image_picker: ^1.1.2
