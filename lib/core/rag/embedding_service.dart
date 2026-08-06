@@ -1,5 +1,6 @@
 import 'package:flutter_gemma/core/api/flutter_gemma.dart';
 
+import '../ai/bundled_asset_copier.dart';
 import 'embedding_catalog.dart';
 
 /// Thin wrapper around flutter_gemma's on-device text embedder.
@@ -15,8 +16,17 @@ class EmbeddingService {
   static final EmbeddingService instance = EmbeddingService._();
 
   /// Install the embedding model + tokenizer from their bundled native
-  /// assets (no network, no meaningful progress).
-  Future<void> installEmbedder() async {
+  /// assets (no network). On Android, pre-copies both ourselves on a
+  /// background thread first — see [BundledAssetCopier] for why.
+  Future<void> installEmbedder({void Function(int percent)? onProgress}) async {
+    await BundledAssetCopier.ensureCopied(
+      EmbeddingCatalog.modelFileName,
+      onProgress: onProgress,
+    );
+    await BundledAssetCopier.ensureCopied(
+      EmbeddingCatalog.tokenizerFileName,
+      onProgress: onProgress,
+    );
     await FlutterGemma.installEmbedder()
         .modelFromBundled(EmbeddingCatalog.modelFileName)
         .tokenizerFromBundled(EmbeddingCatalog.tokenizerFileName)

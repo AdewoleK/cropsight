@@ -36,15 +36,19 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
     try {
       setState(() {
         _step = 'Loading on-device model';
-        _percent = null;
+        _percent = 0;
       });
-      await GemmaService.instance.installModel();
+      await GemmaService.instance.installModel(
+        onProgress: (p) => setState(() => _percent = p),
+      );
 
       setState(() {
         _step = 'Loading knowledge embedder';
-        _percent = null;
+        _percent = 0;
       });
-      await EmbeddingService.instance.installEmbedder();
+      await EmbeddingService.instance.installEmbedder(
+        onProgress: (p) => setState(() => _percent = p),
+      );
 
       setState(() {
         _step = 'Indexing the field guide';

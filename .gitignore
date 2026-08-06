@@ -16,6 +16,11 @@ pubspec.lock
 *.task
 *.litertlm
 *.bin
+# Bundled asset binaries specifically (README.md in that folder documents
+# where to fetch them; the .tflite/.model extensions aren't unique enough
+# to blanket-ignore project-wide).
+android/app/src/main/assets/models/*.tflite
+android/app/src/main/assets/models/*.model
 
 # Gradle/Kotlin build caches
 android/.kotlin/

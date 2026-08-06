@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_gemma/flutter_gemma.dart';
 
+import 'bundled_asset_copier.dart';
 import 'model_catalog.dart';
 
 /// A thin, app-facing wrapper around flutter_gemma.
@@ -25,10 +26,16 @@ class GemmaService {
     return FlutterGemma.isModelInstalled(CropSightModel.fileName);
   }
 
-  /// Install the model from its bundled native asset (no network, no
-  /// meaningful progress — flutter_gemma copies it out of the APK into app
-  /// storage once, then this is a no-op on later launches).
-  Future<void> installModel() async {
+  /// Install the model from its bundled native asset (no network). On
+  /// Android, pre-copies it ourselves on a background thread first — see
+  /// [BundledAssetCopier] for why: flutter_gemma's own copy blocks the main
+  /// thread and ANRs for a file this size. A no-op on later launches, once
+  /// the file already exists on-device.
+  Future<void> installModel({void Function(int percent)? onProgress}) async {
+    await BundledAssetCopier.ensureCopied(
+      CropSightModel.fileName,
+      onProgress: onProgress,
+    );
     await FlutterGemma.installModel(modelType: CropSightModel.modelType)
         .fromBundled(CropSightModel.fileName)
         .install();
