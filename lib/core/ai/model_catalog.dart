@@ -23,6 +23,10 @@ class CropSightModel {
   /// mid-range devices; raise if you target higher-RAM phones.
   static const int maxTokens = 2048;
 
-  /// Gemma3n vision needs more RAM; GPU is preferred where available.
-  static const PreferredBackend preferredBackend = PreferredBackend.gpu;
+  /// GPU delegates carry extra memory overhead (compiled kernels, texture
+  /// buffers) on top of the base model weights — CPU is the safer default
+  /// on memory-constrained devices, at the cost of speed. Confirmed on a
+  /// real ~3.7GB-RAM device: GPU backend got the app killed by Android's
+  /// low-memory killer mid-inference ("memavailable critical lower").
+  static const PreferredBackend preferredBackend = PreferredBackend.cpu;
 }

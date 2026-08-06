@@ -34,11 +34,14 @@ breaks most AI products is the one this is designed around from the ground up.
 - **Private by construction.** The image and the reasoning stay on the phone.
   Only optional, anonymised *results* ever sync — and only when a connection
   happens to be available.
-- **Honest about the hardware tradeoff.** Gemma3n's vision path is memory-
-  hungry — comfortable latency wants a GPU and roughly 8GB of RAM. It still
-  runs on cheaper devices via the CPU backend, just slower. Stated plainly
-  here rather than glossed over: this targets real, affordable Android
-  hardware, not a flagship, and the tradeoff that comes with that is real.
+- **Honest about the hardware tradeoff — measured, not guessed.** Tested on a
+  real ~3.7GB-RAM Android phone: the GPU backend gets the app killed by
+  Android's low-memory killer mid-inference; the CPU backend avoids the kill
+  but stalls (thrashing, not progressing) rather than actually completing.
+  The model's weights alone are ~2.9GB — a phone needs meaningfully more RAM
+  than that once the OS and other apps are accounted for. This targets real,
+  affordable Android hardware, not a flagship, but "affordable" here still
+  means something in the 6-8GB range, not the cheapest phone on the shelf.
 
 ## Architecture
 
@@ -109,9 +112,11 @@ cards it's instant and dependency-free, and easy to swap for something like
 - [x] **Phase 1 — Capture polish:** better prompts, structured result cards,
       retake/confirm flow.
 - [ ] **Phase 2 — Bundled model:** ship the model as a native asset so the app
-      is offline from first launch, no download step. Code-complete; blocked
-      on placing the actual (large, gated) model file — see
-      [`android/app/src/main/assets/models/README.md`](android/app/src/main/assets/models/README.md).
+      is offline from first launch, no download step. Bundling itself is done
+      and verified on a real device (found and fixed a real ANR bug along the
+      way). End-to-end inference isn't demonstrated yet — the test device's
+      ~3.7GB RAM isn't enough to actually run Gemma3n E2B's vision path on
+      either backend; needs a ~6-8GB-RAM device to finish.
 - [x] **Phase 3 — On-device RAG:** crop-disease reference cards embedded with an
       on-device embedder, retrieved by cosine similarity, and used to ground a
       two-pass diagnosis that cites its sources.

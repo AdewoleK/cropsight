@@ -52,13 +52,19 @@ on the phone in their hand, with airplane mode on.
   around. The sync payload was deliberately scoped to the minimum: an
   install-local random ID, a timestamp, and which reference cards matched —
   the photo and the model's own words never leave the local on-device record.
-- **Being honest about what "affordable hardware" actually means.** It's
-  tempting to claim this runs great on the cheapest phone available; it
-  doesn't, and that claim wouldn't survive scrutiny. Gemma3n's vision path
-  wants a GPU and roughly 8GB of RAM for comfortable latency — closer to a
-  mid-range device than the very cheapest entry-level ones on the market
-  today. It still runs on less via the CPU backend, just slower. That
-  tradeoff is stated plainly rather than glossed over.
+- **Being honest about what "affordable hardware" actually means — with
+  numbers, not a hedge.** Tested on a real ~3.7GB-RAM Android phone: the GPU
+  backend gets the app killed by Android's low-memory killer mid-inference
+  (`lowmemorykiller: Kill 'com.example.cropsight' ... reason: memavailable
+  critical lower`, confirmed via `adb logcat`, killing it even at foreground/
+  top-priority `oom_score_adj 0`). Switching to the CPU backend avoids the
+  hard kill, but doesn't make the phone able to run this — the process
+  instead stalls at 0% CPU with `MemAvailable` down to ~550MB, thrashing
+  rather than progressing, for as long as it was left running. The model's
+  weights alone are ~2.9GB; a phone with roughly 3.7GB total RAM simply
+  doesn't have that headroom once the OS and other apps are accounted for, on
+  any backend. This isn't a software bug to fix — it's a real minimum-spec
+  line, now backed by a measurement instead of a guess.
 - **Making an on-device model's output UI-renderable.** Small local models
   don't reliably emit valid JSON, so structured result cards come from a
   forgiving line-based parser (`lib/features/diagnosis/structured_diagnosis.dart`)
@@ -102,10 +108,12 @@ Opportunistic (only if configured, only if online)
 - **Phase 0 — Foundation:** done. Offline vision diagnosis end to end.
 - **Phase 1 — Capture polish:** done. Labeled-line prompt + parser + structured
   result cards; retake/confirm flow before running a diagnosis.
-- **Phase 2 — Bundled model:** done, verified on real hardware. Model/embedder
-  install from bundled native assets, no runtime download — confirmed reaching
-  the working Diagnosis screen on a physical Android phone with the real
-  ~2.9GB model bundled, after finding and fixing the ANR bug above.
+- **Phase 2 — Bundled model:** the bundling mechanism itself is done and
+  verified — confirmed reaching the working Diagnosis screen on a physical
+  Android phone with the real ~2.9GB model bundled, after finding and fixing
+  the ANR bug above. End-to-end *inference* on that same phone isn't
+  demonstrated yet — see the RAM finding above; that phone (~3.7GB RAM) can't
+  actually run the vision pass. Needs a higher-RAM device to complete.
 - **Phase 3 — On-device RAG:** done.
 - **Phase 4 — Opportunistic sync:** code-complete, not yet exercised against a
   real sync target. Local queue, connectivity detection, pluggable sync
@@ -121,6 +129,9 @@ heading for the Play Store or App Store. Distributed as a direct APK install
 
 ## What's next / known gaps
 
+- **A device with more RAM is needed to finish the demo.** The one available
+  for testing (~3.7GB) can't run Gemma3n E2B's vision path on either backend
+  — see above. Need something in the 6-8GB range to actually record `DEMO.md`.
 - No real backend exists for sync yet — `SyncTarget` is pluggable specifically
   so one can be wired in later without touching the queueing/connectivity
   logic.
