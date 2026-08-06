@@ -8,10 +8,13 @@ next — all with airplane mode on, on a mid-range Android phone. There is no
 server, no API key burning through a budget, and no user photo ever uploaded
 anywhere.
 
-Most AI demos quietly assume fast, cheap, always-on connectivity. For the
-farmers who would benefit most, that assumption is exactly what is missing.
-CropSight is built the other way around: the model, the reasoning, and (soon)
-the reference knowledge all live on the device.
+Most AI demos quietly assume fast, cheap, always-on connectivity — a safe bet
+in a well-connected office, and exactly the assumption that fails for the more
+than 60% of Sub-Saharan Africa's population whose livelihoods run through
+smallholder farming, frequently in places where signal is patchy or absent
+altogether. CropSight is built the other way around: the model, the reasoning,
+and the reference knowledge all live on the device, so the one constraint that
+breaks most AI products is the one this is designed around from the ground up.
 
 ---
 
@@ -31,16 +34,34 @@ the reference knowledge all live on the device.
 - **Private by construction.** The image and the reasoning stay on the phone.
   Only optional, anonymised *results* ever sync — and only when a connection
   happens to be available.
+- **Honest about the hardware tradeoff.** Gemma3n's vision path is memory-
+  hungry — comfortable latency wants a GPU and roughly 8GB of RAM. It still
+  runs on cheaper devices via the CPU backend, just slower. Stated plainly
+  here rather than glossed over: this targets real, affordable Android
+  hardware, not a flagship, and the tradeoff that comes with that is real.
 
 ## Architecture
 
 ```
 On device (works fully offline)
-  Capture UI  ──►  Diagnosis controller  ──►  Gemma3n engine (multimodal)
-                                          └►  RAG store (embeddings + SQLite)   [Phase 3]
-  Local model + knowledge files bundled on device
-                                          ┄┄►  Optional sync (results only)     [Phase 4]
+  Capture UI → retake/confirm → Diagnosis controller
+                                    ├─► Gemma3n E2B (vision pass: describe)
+                                    ├─► On-device RAG (embed + cosine match
+                                    │     against bundled knowledge cards)
+                                    └─► Gemma3n E2B (grounded, cited answer)
+                                          → parsed into structured result cards
+
+  Model + embedder + knowledge cards all bundled as native assets — no
+  download step, offline from the very first launch
+
+Opportunistic (only if configured, only if online)
+  Local sync queue → connectivity-triggered flush → anonymised payload only
 ```
+
+The RAG index is deliberately plain Dart cosine similarity over cached
+embeddings, not a native vector database — at a few dozen short reference
+cards it's instant and dependency-free, and easy to swap for something like
+`flutter_gemma_rag_sqlite` if the knowledge base grows large enough to need it.
 
 ## Tech stack
 

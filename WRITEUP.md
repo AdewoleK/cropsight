@@ -2,11 +2,13 @@
 
 ## The problem
 
-Most AI demos quietly assume fast, cheap, always-on connectivity. The farmers
-who'd benefit most from a crop-disease diagnosis tool are frequently the ones
-without it. CropSight is built the other way around: a smallholder farmer
-photographs a diseased leaf, and the entire pipeline — vision, retrieval,
-reasoning — runs on the phone in their hand, with airplane mode on.
+Most AI demos quietly assume fast, cheap, always-on connectivity. More than
+60% of Sub-Saharan Africa's population depends on smallholder farming for
+their livelihood, frequently in places where that assumption simply doesn't
+hold — signal is patchy, data is expensive relative to income, or both.
+CropSight is built the other way around: a smallholder farmer photographs a
+diseased leaf, and the entire pipeline — vision, retrieval, reasoning — runs
+on the phone in their hand, with airplane mode on.
 
 ## What it does
 
@@ -50,6 +52,13 @@ reasoning — runs on the phone in their hand, with airplane mode on.
   around. The sync payload was deliberately scoped to the minimum: an
   install-local random ID, a timestamp, and which reference cards matched —
   the photo and the model's own words never leave the local on-device record.
+- **Being honest about what "affordable hardware" actually means.** It's
+  tempting to claim this runs great on the cheapest phone available; it
+  doesn't, and that claim wouldn't survive scrutiny. Gemma3n's vision path
+  wants a GPU and roughly 8GB of RAM for comfortable latency — closer to a
+  mid-range device than the very cheapest entry-level ones on the market
+  today. It still runs on less via the CPU backend, just slower. That
+  tradeoff is stated plainly rather than glossed over.
 - **Making an on-device model's output UI-renderable.** Small local models
   don't reliably emit valid JSON, so structured result cards come from a
   forgiving line-based parser (`lib/features/diagnosis/structured_diagnosis.dart`)
