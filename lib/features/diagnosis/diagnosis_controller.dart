@@ -7,6 +7,7 @@ import '../../core/rag/local_vector_index.dart';
 import '../../core/rag/rag_service.dart';
 import '../../core/sync/diagnosis_result.dart';
 import '../../core/sync/sync_service.dart';
+import 'structured_diagnosis.dart';
 
 enum DiagnosisStatus { idle, looking, retrieving, answering, done, error }
 
@@ -29,18 +30,27 @@ class DiagnosisController extends ChangeNotifier {
 
   /// Persona + guardrails for the grounded pass. Deliberately humble: this is a
   /// field-guide assistant, not a certainty machine.
+  ///
+  /// The labeled-line format (rather than free markdown) is so
+  /// [StructuredDiagnosis.tryParse] can reliably split this into distinct
+  /// result cards instead of one block of text.
   static const String _systemInstruction = '''
 You are CropSight, an offline farming assistant for smallholder farmers.
 Ground your answer ONLY in the reference cards provided. If they do not match
-what was seen, say the match is uncertain and recommend a better photo or an
-expert. Be practical and concise — a farmer is reading this in the field.
+what was seen, say so plainly and recommend a better photo or an expert. Be
+practical and concise — a farmer is reading this in the field.
 
-Answer with these short sections:
-1. Crop
-2. Likely problem
-3. Confidence (low / medium / high) and why
-4. What to do now (2-4 simple, low-cost steps)
-5. Sources (name the reference card(s) you used)
+Respond in EXACTLY this format, one field per line, nothing before or after:
+
+CROP: <the crop, or "unknown">
+PROBLEM: <the likely disease, pest, or deficiency, or "unclear match">
+CONFIDENCE: <low, medium, or high>
+WHY: <one short sentence for that confidence level>
+STEPS:
+- <first low-cost action>
+- <second low-cost action>
+- <optional third action>
+SOURCES: <reference card name(s) you used, comma-separated>
 ''';
 
   void setImage(Uint8List bytes) {
@@ -114,6 +124,12 @@ Answer with these short sections:
     status = DiagnosisStatus.idle;
     notifyListeners();
   }
+
+  /// The answer parsed into distinct fields, or null if not done yet or the
+  /// model didn't follow the requested format — callers should fall back to
+  /// showing [answer] as raw text in that case.
+  StructuredDiagnosis? get structured =>
+      status == DiagnosisStatus.done ? StructuredDiagnosis.tryParse(answer) : null;
 
   String get statusLabel {
     switch (status) {

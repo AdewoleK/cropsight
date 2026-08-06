@@ -85,16 +85,22 @@ On device (works fully offline)
 
 - [x] **Phase 0 — Foundation:** project, model lifecycle, offline vision
       diagnosis end to end.
-- [ ] **Phase 1 — Capture polish:** better prompts, structured result cards,
+- [x] **Phase 1 — Capture polish:** better prompts, structured result cards,
       retake/confirm flow.
-- [ ] **Phase 2 — Bundled model:** ship a smaller model as a native asset so the
-      app is offline from first launch, no download step.
+- [ ] **Phase 2 — Bundled model:** ship the model as a native asset so the app
+      is offline from first launch, no download step. Code-complete; blocked
+      on placing the actual (large, gated) model file — see
+      [`android/app/src/main/assets/models/README.md`](android/app/src/main/assets/models/README.md).
 - [x] **Phase 3 — On-device RAG:** crop-disease reference cards embedded with an
       on-device embedder, retrieved by cosine similarity, and used to ground a
       two-pass diagnosis that cites its sources.
 - [ ] **Phase 4 — Opportunistic sync:** queue anonymised results and sync when a
-      connection appears; simple agronomist dashboard.
+      connection appears; simple agronomist dashboard. Code-complete (in-app
+      dashboard, not a separate product yet); real end-to-end verification
+      needs the same model file as Phase 2 plus, optionally, a `SYNC_ENDPOINT`.
 - [ ] **Phase 5 — Field demo:** recorded airplane-mode walkthrough and writeup.
+      Writeup done ([`WRITEUP.md`](WRITEUP.md)); recording script ready
+      ([`DEMO.md`](DEMO.md)) — the recording itself is a manual step.
 
 ## Privacy
 

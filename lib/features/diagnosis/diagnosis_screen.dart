@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../sync/sync_status_screen.dart';
 import 'diagnosis_controller.dart';
+import 'diagnosis_result_view.dart';
 
 /// The core screen: photograph a leaf, get an offline, grounded diagnosis.
 class DiagnosisScreen extends StatelessWidget {
@@ -21,13 +22,14 @@ class DiagnosisScreen extends StatelessWidget {
 class _DiagnosisView extends StatelessWidget {
   const _DiagnosisView();
 
+  /// Picks a photo and shows it for confirmation — does not start the
+  /// diagnosis yet, that happens when the user taps "Diagnose".
   Future<void> _pick(BuildContext context, ImageSource source) async {
     final controller = context.read<DiagnosisController>();
     final picker = ImagePicker();
     final file = await picker.pickImage(source: source, imageQuality: 90);
     if (file == null) return;
     controller.setImage(await file.readAsBytes());
-    await controller.run();
   }
 
   @override
@@ -37,6 +39,13 @@ class _DiagnosisView extends StatelessWidget {
     final busy = controller.status == DiagnosisStatus.looking ||
         controller.status == DiagnosisStatus.retrieving ||
         controller.status == DiagnosisStatus.answering;
+    // Picked but not yet confirmed — awaiting "Diagnose" or "Retake".
+    final awaitingConfirm =
+        controller.imageBytes != null && controller.status == DiagnosisStatus.idle;
+    // A diagnosis has been run (successfully or not) — offer a fresh start.
+    final canStartOver = !awaitingConfirm &&
+        controller.status != DiagnosisStatus.idle &&
+        !busy;
 
     return Scaffold(
       appBar: AppBar(
@@ -75,28 +84,56 @@ class _DiagnosisView extends StatelessWidget {
               else
                 _EmptyHint(theme: theme),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed:
-                          busy ? null : () => _pick(context, ImageSource.camera),
-                      icon: const Icon(Icons.camera_alt),
-                      label: const Text('Camera'),
+              if (awaitingConfirm)
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: controller.reset,
+                        icon: const Icon(Icons.replay),
+                        label: const Text('Retake'),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: busy
-                          ? null
-                          : () => _pick(context, ImageSource.gallery),
-                      icon: const Icon(Icons.photo_library),
-                      label: const Text('Gallery'),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: controller.run,
+                        icon: const Icon(Icons.eco),
+                        label: const Text('Diagnose'),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                )
+              else if (canStartOver)
+                OutlinedButton.icon(
+                  onPressed: controller.reset,
+                  icon: const Icon(Icons.add_a_photo),
+                  label: const Text('New diagnosis'),
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: busy
+                            ? null
+                            : () => _pick(context, ImageSource.camera),
+                        icon: const Icon(Icons.camera_alt),
+                        label: const Text('Camera'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: busy
+                            ? null
+                            : () => _pick(context, ImageSource.gallery),
+                        icon: const Icon(Icons.photo_library),
+                        label: const Text('Gallery'),
+                      ),
+                    ),
+                  ],
+                ),
               const SizedBox(height: 20),
               _ResultPanel(controller: controller, busy: busy),
             ],
@@ -183,12 +220,13 @@ class _ResultPanel extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                SelectableText(
-                  controller.answer.isEmpty
-                      ? (busy ? '…' : '')
-                      : controller.answer,
-                  style: theme.textTheme.bodyLarge,
-                ),
+                if (controller.answer.isEmpty)
+                  Text(busy ? '…' : '', style: theme.textTheme.bodyLarge)
+                else
+                  DiagnosisResultView(
+                    answer: controller.answer,
+                    structured: controller.structured,
+                  ),
               ],
             ),
           ),
