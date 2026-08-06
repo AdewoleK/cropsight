@@ -91,6 +91,10 @@ Opportunistic (only if configured, only if online)
   The actual recording is the one thing that has to happen by hand, on a real
   phone — see `DEMO.md`.
 
+This is a personal project, built and shared as a portfolio piece — not
+heading for the Play Store or App Store. Distributed as a direct APK install
+(`flutter build apk` → sideload/`adb install`).
+
 ## What's next / known gaps
 
 - No real backend exists for sync yet — `SyncTarget` is pluggable specifically
@@ -99,7 +103,3 @@ Opportunistic (only if configured, only if online)
 - iOS bundling is documented (`ios/SETUP.md`) but not implemented — this repo
   is Android-first, and the manual Xcode steps haven't actually been
   exercised.
-- Distributing a ~3.1GB app through the Google Play Store (rather than a
-  direct APK install) would hit Play's base-module size limits and need Play
-  Asset Delivery — out of scope for now since nothing here targets the Play
-  Store yet.
