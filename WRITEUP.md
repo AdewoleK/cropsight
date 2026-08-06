@@ -66,6 +66,19 @@ on the phone in their hand, with airplane mode on.
   model doesn't follow the format — verified with unit tests
   (`test/structured_diagnosis_test.dart`) since the model itself couldn't be
   exercised in every environment this was built in.
+- **A real crash, found only by actually running on hardware.** `flutter_gemma`'s
+  own bundled-asset install copies the file on the Android platform thread —
+  fine for the small models its own examples ship, an ANR for a ~2.9GB one.
+  Confirmed on a real device: Android wrote a tombstone and killed the app
+  mid-copy. Still present in the latest release (1.5.2 at the time), so not a
+  version bump away. Fixed by reverse-engineering the plugin's own
+  file-existence check and beating it to the punch: a small native
+  MethodChannel (`MainActivity.kt`) copies the same asset on a background
+  thread first — to a `.part` file, atomically renamed only once complete, so
+  an interrupted copy can never masquerade as a finished one — landing it
+  exactly where the plugin expects to find it already done. No static
+  analysis or emulator would have caught this; it only showed up running the
+  real ~2.9GB file on real, non-flagship hardware.
 
 ## Architecture
 
@@ -89,13 +102,15 @@ Opportunistic (only if configured, only if online)
 - **Phase 0 — Foundation:** done. Offline vision diagnosis end to end.
 - **Phase 1 — Capture polish:** done. Labeled-line prompt + parser + structured
   result cards; retake/confirm flow before running a diagnosis.
-- **Phase 2 — Bundled model:** code-complete. Model/embedder install from
-  bundled native assets, no runtime download. *Blocked on an external action —
-  see below.*
+- **Phase 2 — Bundled model:** done, verified on real hardware. Model/embedder
+  install from bundled native assets, no runtime download — confirmed reaching
+  the working Diagnosis screen on a physical Android phone with the real
+  ~2.9GB model bundled, after finding and fixing the ANR bug above.
 - **Phase 3 — On-device RAG:** done.
-- **Phase 4 — Opportunistic sync:** code-complete. Local queue, connectivity
-  detection, pluggable sync target (disabled unless configured), in-app
-  status screen standing in for a dashboard until a real backend exists.
+- **Phase 4 — Opportunistic sync:** code-complete, not yet exercised against a
+  real sync target. Local queue, connectivity detection, pluggable sync
+  target (disabled unless configured), in-app status screen standing in for
+  a dashboard until a real backend exists.
 - **Phase 5 — Field demo:** this writeup, plus `DEMO.md`'s recording script.
   The actual recording is the one thing that has to happen by hand, on a real
   phone — see `DEMO.md`.
