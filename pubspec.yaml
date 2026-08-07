@@ -43,3 +43,15 @@ flutter:
   assets:
     # Phase 3: bundled RAG knowledge base (crop-disease reference cards).
     - assets/knowledge/
+
+  # Bundled locally (not fetched via the google_fonts package) so the app
+  # never needs a network call for type, matching its offline-first pitch.
+  fonts:
+    - family: Plus Jakarta Sans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Variable.ttf
+        - asset: assets/fonts/PlusJakartaSans-Italic-Variable.ttf
+          style: italic
+    - family: Allerta Stencil
+      fonts:
+        - asset: assets/fonts/AllertaStencil-Regular.ttf

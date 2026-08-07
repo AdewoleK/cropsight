@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/ai/gemma_service.dart';
 import '../../core/rag/embedding_service.dart';
 import '../../core/rag/rag_service.dart';
+import '../../theme/app_theme.dart';
+import '../../theme/widgets.dart';
 
 /// First-run screen: install the two bundled on-device models (the
 /// multimodal model + the embedder), then build the knowledge-base index.
@@ -22,7 +24,13 @@ class AppSetupScreen extends StatefulWidget {
 }
 
 class _AppSetupScreenState extends State<AppSetupScreen> {
-  String _step = 'Preparing on-device AI';
+  static const _steps = [
+    'Loading on-device model',
+    'Loading knowledge embedder',
+    'Indexing the field guide',
+  ];
+
+  int _stepIndex = 0;
   int? _percent;
   String? _error;
 
@@ -35,15 +43,16 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
   Future<void> _start() async {
     try {
       setState(() {
-        _step = 'Loading on-device model';
+        _stepIndex = 0;
         _percent = 0;
+        _error = null;
       });
       await GemmaService.instance.installModel(
         onProgress: (p) => setState(() => _percent = p),
       );
 
       setState(() {
-        _step = 'Loading knowledge embedder';
+        _stepIndex = 1;
         _percent = 0;
       });
       await EmbeddingService.instance.installEmbedder(
@@ -51,7 +60,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
       );
 
       setState(() {
-        _step = 'Indexing the field guide';
+        _stepIndex = 2;
         _percent = 0;
       });
       await RagService.instance.ensureReady(
@@ -66,55 +75,154 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final p = context.palette;
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(28, 0, 28, 28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
-              Icon(Icons.eco, size: 64, color: theme.colorScheme.primary),
-              const SizedBox(height: 16),
-              Text('Setting up CropSight',
+              const Spacer(flex: 3),
+              const Center(child: SproutMark(size: 78)),
+              const SizedBox(height: 20),
+              Text('CropSight',
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 8),
+                  style: AppTheme.stencil(size: 30, color: p.ink)),
+              const SizedBox(height: 10),
               Text(
-                'One-time setup, fully on-device — no internet needed. This '
-                'may take a minute on first launch.',
+                'One-time setup, fully on-device — no signal needed\nafter this.',
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
+                style: TextStyle(fontSize: 13, height: 1.5, color: p.inkSoft),
               ),
-              const SizedBox(height: 32),
+              const Spacer(flex: 2),
               if (_error == null) ...[
-                Text(_step,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall),
-                const SizedBox(height: 8),
-                if (_percent != null) ...[
-                  LinearProgressIndicator(value: _percent! / 100),
-                  const SizedBox(height: 8),
-                  Text('$_percent%', textAlign: TextAlign.center),
-                ] else
-                  const LinearProgressIndicator(),
-              ] else ...[
-                Text(_error!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: theme.colorScheme.error)),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: _start,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                ),
-              ],
-              const Spacer(),
+                _Checklist(stepIndex: _stepIndex, percent: _percent),
+              ] else
+                _ErrorPanel(error: _error!, onRetry: _start),
+              const Spacer(flex: 3),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _Checklist extends StatelessWidget {
+  const _Checklist({required this.stepIndex, required this.percent});
+  final int stepIndex;
+  final int? percent;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _AppSetupScreenState._steps.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                _StatusDot(state: i < stepIndex
+                    ? TrackState.done
+                    : i == stepIndex
+                        ? TrackState.active
+                        : TrackState.pending),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _AppSetupScreenState._steps[i],
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: i <= stepIndex ? p.ink : p.husk,
+                    ),
+                  ),
+                ),
+                if (i == stepIndex && percent != null)
+                  Text('$percent%',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: p.marigold,
+                          fontFeatures: const [FontFeature.tabularFigures()])),
+              ],
+            ),
+          ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: percent != null ? percent! / 100 : null,
+            minHeight: 6,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusDot extends StatelessWidget {
+  const _StatusDot({required this.state});
+  final TrackState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: switch (state) {
+        TrackState.done => Container(
+            decoration: BoxDecoration(color: p.fern, shape: BoxShape.circle),
+            child: Icon(Icons.check, size: 13, color: p.onFern),
+          ),
+        TrackState.active => Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: p.marigold, width: 2.4),
+            ),
+          ),
+        TrackState.pending => Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: p.hairline, width: 2),
+            ),
+          ),
+      },
+    );
+  }
+}
+
+class _ErrorPanel extends StatelessWidget {
+  const _ErrorPanel({required this.error, required this.onRetry});
+  final String error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: p.paper2,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: p.brick.withValues(alpha: 0.4)),
+          ),
+          child: Text(error, style: TextStyle(fontSize: 12.5, color: p.brick)),
+        ),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: onRetry,
+          icon: const Icon(Icons.refresh, size: 18),
+          label: const Text('Retry'),
+        ),
+      ],
     );
   }
 }

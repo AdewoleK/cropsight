@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import '../../core/sync/diagnosis_result.dart';
 import '../../core/sync/sync_service.dart';
 import '../../core/sync/sync_store.dart';
+import '../../theme/app_theme.dart';
+import '../../theme/widgets.dart';
 
-/// Demo/debug screen: shows what's queued/synced locally and lets you force
-/// a sync attempt. Stands in for a real agronomist dashboard until there's an
-/// actual backend to build one against.
+/// The field log: what's queued/synced locally, with a manual sync trigger.
+/// Stands in for a real agronomist dashboard until there's an actual backend
+/// to build one against.
 class SyncStatusScreen extends StatefulWidget {
   const SyncStatusScreen({super.key});
 
@@ -44,12 +46,23 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final p = context.palette;
     final pending = _results.where((r) => !r.synced).length;
     final synced = _results.length - pending;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sync status')),
+      appBar: AppBar(
+        title: Text('Field log', style: AppTheme.stencil(size: 19, color: p.ink)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: OfflinePill(
+              label: pending == 0 ? 'ALL SYNCED' : '$pending UNSYNCED',
+              dotColor: pending == 0 ? p.fern : p.marigold,
+            ),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -60,39 +73,42 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _StatTile(
-                            label: 'Pending', value: '$pending', theme: theme),
-                      ),
+                          child: _StatBox(label: 'Pending', value: pending, p: p)),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatTile(
-                            label: 'Synced', value: '$synced', theme: theme),
-                      ),
+                      Expanded(child: _StatBox(label: 'Synced', value: synced, p: p)),
                     ],
                   ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: _syncing ? null : _syncNow,
                     icon: _syncing
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.sync),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: p.onRust),
+                          )
+                        : const Icon(Icons.cloud_upload_outlined, size: 18),
                     label: const Text('Sync now'),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
                   if (_results.isEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      child: Text('No diagnoses yet.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium),
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Column(
+                        children: [
+                          Icon(Icons.center_focus_strong_outlined,
+                              size: 32, color: p.husk),
+                          const SizedBox(height: 10),
+                          Text('No diagnoses yet.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: p.husk, fontSize: 13)),
+                        ],
+                      ),
                     )
                   else ...[
-                    Text('Recent diagnoses', style: theme.textTheme.labelLarge),
-                    const SizedBox(height: 8),
-                    for (final result in _results) _ResultTile(result: result),
+                    const SectionLabel('Recent'),
+                    for (final result in _results) _LogRow(result: result),
                   ],
                 ],
               ),
@@ -101,44 +117,86 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
   }
 }
 
-class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.value, required this.theme});
+class _StatBox extends StatelessWidget {
+  const _StatBox({required this.label, required this.value, required this.p});
   final String label;
-  final String value;
-  final ThemeData theme;
+  final int value;
+  final CropSightPalette p;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(value, style: theme.textTheme.headlineMedium),
-            Text(label, style: theme.textTheme.bodySmall),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: p.paper2,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: p.hairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$value', style: AppTheme.stencil(size: 30, color: p.ink)),
+          const SizedBox(height: 2),
+          Text(label.toUpperCase(),
+              style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.8, color: p.husk)),
+        ],
       ),
     );
   }
 }
 
-class _ResultTile extends StatelessWidget {
-  const _ResultTile({required this.result});
+class _LogRow extends StatelessWidget {
+  const _LogRow({required this.result});
   final DiagnosisResult result;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     final topCard = result.citedCards.isNotEmpty ? result.citedCards.first : null;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        result.synced ? Icons.cloud_done : Icons.cloud_queue,
-        color: result.synced ? Colors.green : null,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: p.hairline))),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+                color: result.synced ? p.fern : p.marigold, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(topCard?.label ?? 'Diagnosis',
+                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text(_formatTimestamp(result.timestamp),
+                    style: TextStyle(fontSize: 10.5, color: p.husk)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: result.synced ? p.fern : p.paper2,
+              borderRadius: BorderRadius.circular(6),
+              border: result.synced ? null : Border.all(color: p.hairline),
+            ),
+            child: Text(
+              result.synced ? 'SYNCED' : 'PENDING',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.6,
+                color: result.synced ? p.onFern : p.inkSoft,
+              ),
+            ),
+          ),
+        ],
       ),
-      title: Text(topCard?.label ?? 'Diagnosis'),
-      subtitle: Text(_formatTimestamp(result.timestamp)),
-      trailing: Text(result.synced ? 'Synced' : 'Pending'),
     );
   }
 
