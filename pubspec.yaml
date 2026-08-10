@@ -1,5 +1,5 @@
 name: cropsight
-description: "CropSight — offline crop-disease diagnosis powered by on-device Gemma3n. Works with no internet, on any modern Android phone."
+description: "CropSight — offline crop-disease diagnosis powered by on-device Gemma3n. No internet, no cloud; needs an Android phone with ~6-8GB+ RAM."
 publish_to: "none"
 version: 0.1.0+1
 
