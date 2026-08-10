@@ -11,6 +11,7 @@ pubspec.lock
 *.iml
 .idea/
 .vscode/
+.claude/
 
 # Model files (too large for git)
 *.task

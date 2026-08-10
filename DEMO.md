@@ -1,5 +1,12 @@
 # Phase 5 — Field demo script
 
+**Status: deferred, not abandoned.** This hasn't been recorded yet — the one
+physical Android device available for testing (~3.7GB RAM) can't run
+Gemma3n E2B's vision inference (see `README.md`'s "Verification status" and
+`WRITEUP.md` for the measured numbers). This script is ready to run the
+moment a device with ~6-8GB+ RAM is available; nothing below has been
+exercised for real yet.
+
 A step-by-step checklist for recording the airplane-mode walkthrough. This is
 the one part of the roadmap that has to happen on a real phone, in your own
 hands — nothing here can be scripted or automated.

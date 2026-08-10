@@ -16,6 +16,21 @@ altogether. CropSight is built the other way around: the model, the reasoning,
 and the reference knowledge all live on the device, so the one constraint that
 breaks most AI products is the one this is designed around from the ground up.
 
+## Verification status — read this before the rest
+
+Stated plainly, once, rather than hedged throughout: on the one physical
+device available for testing (~3.7GB RAM), the app builds, installs, and
+completes its fully-offline first-launch setup (bundling the model and
+embedder with no network call, then indexing the on-device knowledge base) —
+all verified working, including finding and fixing a real crash along the
+way (see `WRITEUP.md`). **The vision-inference step itself — the core
+"photograph a leaf, get a diagnosis" loop — has not been observed completing
+on that device.** Gemma3n E2B's vision path needs more RAM than ~3.7GB has to
+give on either the GPU backend (gets OOM-killed) or CPU backend (stalls
+indefinitely instead). This is a hardware ceiling, measured and documented,
+not a bug being hidden — see the roadmap and `WRITEUP.md` for the numbers.
+No higher-RAM device was available to finish that verification.
+
 ---
 
 ## Why this is hard (and why it matters)
@@ -102,31 +117,42 @@ cards it's instant and dependency-free, and easy to swap for something like
 
 4. First launch does a one-time, fully-local setup (no network) — copying the
    bundled model into app storage and indexing the knowledge base — then drops
-   you into the camera. Turn on airplane mode before you even install it and
-   diagnose a leaf — it still works.
+   you into the camera. No network call happens at any point after that,
+   verified with airplane mode on from before install. **A device with at
+   least ~6-8GB RAM is required** — see the hardware note above; on a lower-RAM
+   device, setup completes but the vision pass itself will stall or get
+   killed by the OS.
 
 ## Roadmap
 
-- [x] **Phase 0 — Foundation:** project, model lifecycle, offline vision
-      diagnosis end to end.
+Code-complete on every phase below. Live, on-device verification covers
+everything *except* the vision-inference step itself — see "Verification
+status" above for exactly what that means and why.
+
+- [x] **Phase 0 — Foundation:** model lifecycle and the offline pipeline are
+      built and wired end to end; the vision-inference step within it is the
+      one thing not yet observed completing (hardware, not code — see above).
 - [x] **Phase 1 — Capture polish:** better prompts, structured result cards,
-      retake/confirm flow.
-- [ ] **Phase 2 — Bundled model:** ship the model as a native asset so the app
-      is offline from first launch, no download step. Bundling itself is done
-      and verified on a real device (found and fixed a real ANR bug along the
-      way). End-to-end inference isn't demonstrated yet — the test device's
-      ~3.7GB RAM isn't enough to actually run Gemma3n E2B's vision path on
-      either backend; needs a ~6-8GB-RAM device to finish.
-- [x] **Phase 3 — On-device RAG:** crop-disease reference cards embedded with an
-      on-device embedder, retrieved by cosine similarity, and used to ground a
-      two-pass diagnosis that cites its sources.
-- [ ] **Phase 4 — Opportunistic sync:** queue anonymised results and sync when a
-      connection appears; simple agronomist dashboard. Code-complete (in-app
-      dashboard, not a separate product yet); real end-to-end verification
-      needs the same model file as Phase 2 plus, optionally, a `SYNC_ENDPOINT`.
-- [ ] **Phase 5 — Field demo:** recorded airplane-mode walkthrough and writeup.
-      Writeup done ([`WRITEUP.md`](WRITEUP.md)); recording script ready
-      ([`DEMO.md`](DEMO.md)) — the recording itself is a manual step.
+      retake/confirm flow. The parser is unit-tested against synthetic model
+      output (`test/structured_diagnosis_test.dart`); not yet seen against a
+      real generated answer, for the same reason.
+- [x] **Phase 2 — Bundled model:** ship the model as a native asset so the app
+      is offline from first launch, no download step. The bundling mechanism
+      itself is verified on real hardware, including finding and fixing a
+      real ANR bug along the way (see `WRITEUP.md`).
+- [x] **Phase 3 — On-device RAG:** crop-disease reference cards embedded with
+      an on-device embedder, retrieved by cosine similarity, and used to
+      ground a two-pass diagnosis that cites its sources. Fully verified —
+      the embedder is a small model (~110MB) that runs fine even on the
+      constrained test device.
+- [x] **Phase 4 — Opportunistic sync:** queue anonymised results and sync when
+      a connection appears; simple agronomist dashboard. Code-complete and
+      unit-verified; not exercised against a live diagnosis end-to-end, since
+      there's been no completed diagnosis yet to queue.
+- [x] **Phase 5 — Field demo:** writeup done ([`WRITEUP.md`](WRITEUP.md)). The
+      recorded airplane-mode walkthrough ([`DEMO.md`](DEMO.md) has the script,
+      ready whenever suitable hardware is) is deliberately deferred rather
+      than faked.
 
 ## Privacy
 

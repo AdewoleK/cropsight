@@ -31,6 +31,20 @@ on the phone in their hand, with airplane mode on.
    which reference cards matched can sync out — never the photo, never the
    free-text diagnosis.
 
+## What's actually verified, stated plainly
+
+Steps 1-2 and 4 above — the vision-inference step, the actual "look at the
+photo" and "write the diagnosis" calls — have not been observed completing on
+the one physical device available for testing (~3.7GB RAM). Everything else
+has: the app builds and installs; first launch bundles the model and embedder
+with zero network calls (including finding and fixing a real ANR bug, below);
+the on-device RAG index builds and retrieves correctly (step 3 — the embedder
+is a small model that fits fine even on constrained hardware); the structured-
+card parser and retake/confirm UI are unit- and manually-tested; the sync
+queue is code-complete and unit-tested. The one missing piece is the core
+inference loop itself, and it's missing for a measured hardware reason (see
+below), not a code one — documented here rather than glossed over.
+
 ## Why each piece was hard
 
 - **Bundling a 3.1GB vision model with no download step.** There is no small,
@@ -105,9 +119,12 @@ Opportunistic (only if configured, only if online)
 
 ## Status against the roadmap
 
-- **Phase 0 — Foundation:** done. Offline vision diagnosis end to end.
+- **Phase 0 — Foundation:** built and wired end to end; the vision-inference
+  step within it is the one thing not yet observed completing — see above.
 - **Phase 1 — Capture polish:** done. Labeled-line prompt + parser + structured
-  result cards; retake/confirm flow before running a diagnosis.
+  result cards; retake/confirm flow before running a diagnosis. The parser is
+  unit-tested against synthetic model output, not yet against a real one, for
+  the same reason.
 - **Phase 2 — Bundled model:** the bundling mechanism itself is done and
   verified — confirmed reaching the working Diagnosis screen on a physical
   Android phone with the real ~2.9GB model bundled, after finding and fixing
