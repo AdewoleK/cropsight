@@ -1,33 +1,53 @@
 # iOS setup notes
 
-CropSight is Android-first; iOS support for the bundled model isn't wired up
-yet. These are manual steps — safely scripting Xcode project-file edits isn't
-reliable, so do this by hand in Xcode when you're ready to build for iOS.
+The iOS target is wired up and builds. Requires iOS 16+ (MediaPipe GenAI's
+minimum).
 
-## Bundle the model as a native asset
+## What's configured
 
-`flutter_gemma`'s `.fromBundled(resourceName)` resolves the file via
-`Bundle.main.path(forResource:)` on iOS, which means the file needs to be added
-to the `Runner` target's **Copy Bundle Resources** build phase — not placed in
-a plain folder the way Android's `assets/` works.
+- **Podfile** — `platform :ios, '16.0'` and `use_frameworks! :linkage => :static`
+  (both required by `flutter_gemma`).
+- **Deployment target** — 16.0 in `Runner.xcodeproj`. Flutter's generated Swift
+  package picks this up on the next build; if a first build complains that
+  `flutter-gemma` needs 16.0 but the target supports 13.0, just build again.
+- **Info.plist** — camera and photo-library usage strings (`image_picker`
+  crashes without them), plus `UIFileSharingEnabled`.
+- **`Runner/Runner.entitlements`** — `increased-memory-limit` and
+  `extended-virtual-addressing`, so iOS lets a ~3GB model stay resident.
+- **Bundled model** — the `Models` group in the Xcode project references the
+  same three files Android uses, in place, from
+  [`android/app/src/main/assets/models/`](../android/app/src/main/assets/models/README.md)
+  (gitignored; fetch them per that README). They're in Runner's **Copy Bundle
+  Resources**, which is where `flutter_gemma`'s `.fromBundled()` looks on iOS
+  (`Bundle.main`). No copy step is needed, unlike Android's
+  `BundledAssetCopier`.
 
-1. Get the same three files described in
-   [`android/app/src/main/assets/models/README.md`](../android/app/src/main/assets/models/README.md)
-   (the `.task` model and the two embedder files).
-2. Open `ios/Runner.xcworkspace` in Xcode (not the `.xcodeproj` — CocoaPods
-   needs the workspace).
-3. Drag the three files into the `Runner` group in the project navigator.
-   When prompted:
-   - Check **"Copy items if needed"**.
-   - Under **Add to targets**, check **Runner**.
-4. Confirm they show up under Runner's **Build Phases → Copy Bundle
-   Resources**.
-5. Build/run from Xcode (or `flutter run -d <ios device>`).
+## Verification status
 
-## Known gap
+- **iOS Simulator (iPhone 16 Pro, iOS 26):** builds, launches, and completes
+  the whole setup flow (model install, embedder load, field-guide indexing),
+  ending on the Diagnose screen. That means the bundled-resource path and
+  on-device embedding inference both work on iOS.
+- **Vision diagnosis on iOS: doesn't work with the current engine.** On the
+  Simulator, the photo pass fails at session creation with `No registered
+  object with name: LlmVisionInferenceCalculator`: the MediaPipe iOS build
+  that `flutter_gemma_mediapipe` ships doesn't include the vision
+  calculator. flutter_gemma's docs say iOS vision runs on the LiteRT-LM
+  (FFI) engine with a `.litertlm` model, so the fix is to switch the model
+  format and engine on iOS. Lite mode and the library work on iOS today.
+- **Physical iPhone:** not yet run. Needs a signing team (see below). RAM is
+  the same constraint as on Android: an iPhone with 6GB+ (iPhone 13 Pro / 14 /
+  15 or newer) is a realistic target. Older 4GB models likely hit the same
+  ceiling documented in the main README.
 
-The Gemma3n `.task` model is loaded through the MediaPipe engine
-(`flutter_gemma_mediapipe`), which supports iOS — but this hasn't been built or
-tested on iOS in this repo yet. Expect to hit and fix issues (codesigning,
-app size limits for a ~3.1GB bundled binary, MediaPipe's iOS pod
-dependencies) the first time this is actually attempted.
+## Running on a physical iPhone
+
+1. Open `ios/Runner.xcworkspace` in Xcode, select the Runner target, go to
+   **Signing & Capabilities**, and pick your Team. Change the bundle ID from
+   `com.example.cropsight` to something unique.
+2. The increased-memory-limit entitlement may require a paid Apple Developer
+   account. If a free personal team rejects it, remove it from
+   `Runner.entitlements` to get the app installed, but expect large-model
+   loading to be more fragile without it.
+3. Enable Developer Mode on the phone, connect it, then run `flutter run -d <device>`.
+   The first install copies ~3.2GB, so it takes a while.

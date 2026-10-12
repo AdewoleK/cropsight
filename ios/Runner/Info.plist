@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>CropSight uses the camera to photograph a leaf for on-device disease diagnosis. Photos never leave your phone.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CropSight lets you pick an existing leaf photo for on-device disease diagnosis. Photos never leave your phone.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -48,6 +52,8 @@
 		</dict>
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
