@@ -5,6 +5,7 @@ import '../../core/sync/sync_service.dart';
 import '../../core/sync/sync_store.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
+import '../settings/settings_screen.dart';
 
 /// The field log: what's queued/synced locally, with a manual sync trigger.
 /// Stands in for a real agronomist dashboard until there's an actual backend
@@ -24,7 +25,14 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
   @override
   void initState() {
     super.initState();
+    SyncStore.instance.changes.addListener(_load);
     _load();
+  }
+
+  @override
+  void dispose() {
+    SyncStore.instance.changes.removeListener(_load);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -54,13 +62,12 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
       appBar: AppBar(
         title: Text('Field log', style: AppTheme.stencil(size: 19, color: p.ink)),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: OfflinePill(
-              label: pending == 0 ? 'ALL SYNCED' : '$pending UNSYNCED',
-              dotColor: pending == 0 ? p.fern : p.marigold,
-            ),
+          OfflinePill(
+            label: pending == 0 ? 'ALL SYNCED' : '$pending UNSYNCED',
+            dotColor: pending == 0 ? p.fern : p.marigold,
           ),
+          const SettingsButton(),
+          const SizedBox(width: 8),
         ],
       ),
       body: _loading

@@ -19,4 +19,21 @@ class RagService {
     final queryVec = await EmbeddingService.instance.embed(query);
     return LocalVectorIndex.instance.search(queryVec, k: k);
   }
+
+  /// Like [retrieve], but when [crop] is given only that crop's cards (plus
+  /// "Many crops" pests and deficiencies) are considered — the farmer told
+  /// us the crop, so a tomato card should never outrank a maize one.
+  Future<List<RetrievedCard>> retrieveForCrop(
+    String query, {
+    String? crop,
+    int k = 3,
+  }) async {
+    await ensureReady();
+    final queryVec = await EmbeddingService.instance.embed(query);
+    final all = LocalVectorIndex.instance.search(queryVec, k: 1 << 20);
+    return all
+        .where((r) => crop == null || r.card.crop == crop || r.card.crop == 'Many crops')
+        .take(k)
+        .toList();
+  }
 }

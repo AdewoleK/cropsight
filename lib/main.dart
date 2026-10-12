@@ -4,6 +4,10 @@ import 'package:flutter_gemma_embeddings/flutter_gemma_embeddings.dart';
 import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 
 import 'app.dart';
+import 'core/ai/device_capability.dart';
+import 'core/fields/field_store.dart';
+import 'core/reminders/reminder_service.dart';
+import 'core/settings/app_settings.dart';
 import 'core/sync/sync_service.dart';
 
 void main() async {
@@ -23,5 +27,11 @@ void main() async {
   // Just registers a connectivity listener — no network access on its own.
   SyncService.instance.start();
 
-  runApp(const CropSightApp());
+  // Everything the farmer keeps lives on the phone — no account to fetch.
+  await DeviceCapability.load();
+  final settings = await AppSettings.load();
+  await FieldStore.instance.load();
+  await ReminderService.instance.load();
+
+  runApp(CropSightApp(settings: settings));
 }

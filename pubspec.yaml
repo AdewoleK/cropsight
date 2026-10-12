@@ -32,9 +32,25 @@ dependencies:
   # Phase 4: posting anonymised results to a sync endpoint.
   http: ^1.6.0
 
+  # Pure-Dart decoding for the pre-diagnosis photo quality check.
+  image: ^4.12.0
+  # Persisted settings (theme, answer language, read-aloud).
+  shared_preferences: ^2.5.6
+  # Reads diagnoses aloud with the phone's own (offline) voices.
+  flutter_tts: ^4.2.5
+  # Offline field reminders — scheduled locally, no push server.
+  flutter_local_notifications: ^22.3.2
+  timezone: ^0.11.2
+  # Reads total RAM so low-memory phones get Lite mode instead of a crash.
+  device_info_plus: ^13.3.0
+  # Hands a diagnosis to WhatsApp/SMS for an extension officer.
+  share_plus: ^13.3.1
+
 dev_dependencies:
   flutter_lints: ^4.0.0
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
 flutter:

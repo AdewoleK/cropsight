@@ -16,19 +16,25 @@ import '../../theme/widgets.dart';
 /// model out of the APK into app storage, which takes a real, one-time
 /// stretch of wall-clock time for a multi-GB file.
 class AppSetupScreen extends StatefulWidget {
-  const AppSetupScreen({super.key, required this.onReady});
+  const AppSetupScreen({super.key, required this.onReady, this.lite = false});
   final VoidCallback onReady;
+
+  /// Lite mode skips installing the multi-GB photo model entirely — it can't
+  /// run on this phone, and copying it would waste ~3GB of storage.
+  final bool lite;
 
   @override
   State<AppSetupScreen> createState() => _AppSetupScreenState();
 }
 
 class _AppSetupScreenState extends State<AppSetupScreen> {
-  static const _steps = [
-    'Loading on-device model',
-    'Loading knowledge embedder',
-    'Indexing the field guide',
-  ];
+  List<String> get _steps => [
+        widget.lite
+            ? 'Photo AI skipped — Lite mode for this phone'
+            : 'Loading on-device model',
+        'Loading knowledge embedder',
+        'Indexing the field guide',
+      ];
 
   int _stepIndex = 0;
   int? _percent;
@@ -40,36 +46,45 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
     _start();
   }
 
+  /// setState that's a no-op once this screen has been replaced — setup
+  /// keeps running in the background if the gate swaps it out (e.g. the
+  /// diagnosis mode changes mid-setup).
+  void _update(VoidCallback fn) {
+    if (mounted) setState(fn);
+  }
+
   Future<void> _start() async {
     try {
-      setState(() {
+      _update(() {
         _stepIndex = 0;
         _percent = 0;
         _error = null;
       });
-      await GemmaService.instance.installModel(
-        onProgress: (p) => setState(() => _percent = p),
-      );
+      if (!widget.lite) {
+        await GemmaService.instance.installModel(
+          onProgress: (p) => _update(() => _percent = p),
+        );
+      }
 
-      setState(() {
+      _update(() {
         _stepIndex = 1;
         _percent = 0;
       });
       await EmbeddingService.instance.installEmbedder(
-        onProgress: (p) => setState(() => _percent = p),
+        onProgress: (p) => _update(() => _percent = p),
       );
 
-      setState(() {
+      _update(() {
         _stepIndex = 2;
         _percent = 0;
       });
       await RagService.instance.ensureReady(
-        onProgress: (p) => setState(() => _percent = p),
+        onProgress: (p) => _update(() => _percent = p),
       );
 
-      widget.onReady();
+      if (mounted) widget.onReady();
     } catch (e) {
-      setState(() => _error = e.toString());
+      _update(() => _error = e.toString());
     }
   }
 
@@ -97,7 +112,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
               ),
               const Spacer(flex: 2),
               if (_error == null) ...[
-                _Checklist(stepIndex: _stepIndex, percent: _percent),
+                _Checklist(steps: _steps, stepIndex: _stepIndex, percent: _percent),
               ] else
                 _ErrorPanel(error: _error!, onRetry: _start),
               const Spacer(flex: 3),
@@ -110,7 +125,8 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
 }
 
 class _Checklist extends StatelessWidget {
-  const _Checklist({required this.stepIndex, required this.percent});
+  const _Checklist({required this.steps, required this.stepIndex, required this.percent});
+  final List<String> steps;
   final int stepIndex;
   final int? percent;
 
@@ -120,7 +136,7 @@ class _Checklist extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (var i = 0; i < _AppSetupScreenState._steps.length; i++)
+        for (var i = 0; i < steps.length; i++)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Row(
@@ -133,7 +149,7 @@ class _Checklist extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _AppSetupScreenState._steps[i],
+                    steps[i],
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,

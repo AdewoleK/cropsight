@@ -31,6 +31,15 @@ indefinitely instead). This is a hardware ceiling, measured and documented,
 not a bug being hidden — see the roadmap and `WRITEUP.md` for the numbers.
 No higher-RAM device was available to finish that verification.
 
+Two updates since then:
+- **Lite mode** gives low-memory phones a working path. The farmer taps what
+  they see, and the small on-device embedder (the part verified on that
+  3.7GB phone) matches it against the 116-entry field guide. The app picks
+  Photo or Lite automatically from the phone's RAM.
+- **iOS photo diagnosis doesn't work with the current MediaPipe engine.** Its
+  iOS build lacks the vision calculator; see `ios/SETUP.md`. Fixing it means
+  moving iOS to the LiteRT-LM engine and a `.litertlm` model.
+
 ---
 
 ## Why this is hard (and why it matters)

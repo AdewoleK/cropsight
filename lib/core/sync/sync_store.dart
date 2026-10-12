@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'diagnosis_result.dart';
@@ -17,6 +18,10 @@ class SyncStore {
   static final SyncStore instance = SyncStore._();
 
   static const int _maxEntries = 500;
+
+  /// Bumped whenever stored results change, so screens kept alive in the
+  /// tab shell (the Log) can reload.
+  final ValueNotifier<int> changes = ValueNotifier(0);
 
   Future<File> _resultsFile() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -88,6 +93,7 @@ class SyncStore {
       results.removeWhere((r) => toEvict.contains(r.id));
     }
     await _writeAll(results);
+    changes.value++;
   }
 
   Future<void> markSynced(List<String> ids) async {
@@ -98,5 +104,6 @@ class SyncStore {
       if (idSet.contains(r.id)) r.synced = true;
     }
     await _writeAll(results);
+    changes.value++;
   }
 }

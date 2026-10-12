@@ -27,6 +27,7 @@ class LocalVectorIndex {
 
   final Map<String, List<double>> _vectors = {};
   bool _ready = false;
+  Future<void>? _building;
 
   bool get isReady => _ready;
 
@@ -37,9 +38,14 @@ class LocalVectorIndex {
 
   /// Build the index (embedding every card) or load it from cache.
   ///
-  /// [onProgress] reports 0..100 while embedding on a cold build.
-  Future<void> ensureBuilt({void Function(int percent)? onProgress}) async {
-    if (_ready) return;
+  /// [onProgress] reports 0..100 while embedding on a cold build. Concurrent
+  /// callers share one build (only the first caller's [onProgress] fires).
+  Future<void> ensureBuilt({void Function(int percent)? onProgress}) {
+    if (_ready) return Future.value();
+    return _building ??= _build(onProgress).whenComplete(() => _building = null);
+  }
+
+  Future<void> _build(void Function(int percent)? onProgress) async {
 
     // Try cache first.
     final file = await _cacheFile();

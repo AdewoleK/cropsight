@@ -2,19 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/ai/photo_quality.dart';
+import '../../core/settings/app_settings.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
+import '../settings/settings_screen.dart';
 import 'diagnosis_controller.dart';
 import 'diagnosis_result_view.dart';
+import 'lite_diagnosis_screen.dart';
+import 'result_actions.dart';
 
-/// The core screen: photograph a leaf, get an offline, grounded diagnosis.
+/// The core screen: photograph a leaf, get an offline, grounded diagnosis —
+/// or, on phones without the memory for the photo model, Lite mode's
+/// describe-the-symptoms flow.
 class DiagnosisScreen extends StatelessWidget {
   const DiagnosisScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    if (context.watch<AppSettings>().useLiteMode) {
+      return const LiteDiagnosisScreen();
+    }
     return ChangeNotifierProvider(
-      create: (_) => DiagnosisController(),
+      create: (context) => DiagnosisController(settings: context.read<AppSettings>()),
       child: const _DiagnosisView(),
     );
   }
@@ -28,7 +38,10 @@ class _DiagnosisView extends StatelessWidget {
   Future<void> _pick(BuildContext context, ImageSource source) async {
     final controller = context.read<DiagnosisController>();
     final picker = ImagePicker();
-    final file = await picker.pickImage(source: source, imageQuality: 90);
+    // 1600px is plenty for the model and the quality check, and keeps a
+    // 12MP photo from costing ~50MB of RAM on a phone that's already tight.
+    final file = await picker.pickImage(
+        source: source, imageQuality: 90, maxWidth: 1600, maxHeight: 1600);
     if (file == null) return;
     controller.setImage(await file.readAsBytes());
   }
@@ -52,7 +65,9 @@ class _DiagnosisView extends StatelessWidget {
       appBar: AppBar(
         title: Text('CropSight', style: AppTheme.stencil(size: 19, color: p.ink)),
         actions: const [
-          Padding(padding: EdgeInsets.only(right: 16), child: OfflinePill()),
+          OfflinePill(),
+          SettingsButton(),
+          SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -71,7 +86,8 @@ class _DiagnosisView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              if (awaitingConfirm)
+              if (awaitingConfirm) ...[
+                _PhotoCheck(issues: controller.photoIssues),
                 Row(
                   children: [
                     Expanded(
@@ -86,12 +102,14 @@ class _DiagnosisView extends StatelessWidget {
                       child: FilledButton.icon(
                         onPressed: controller.run,
                         icon: const Icon(Icons.center_focus_strong, size: 18),
-                        label: const Text('Diagnose'),
+                        label: Text(controller.photoIssues?.isNotEmpty == true
+                            ? 'Use anyway'
+                            : 'Diagnose'),
                       ),
                     ),
                   ],
-                )
-              else if (canStartOver)
+                ),
+              ] else if (canStartOver)
                 OutlinedButton.icon(
                   onPressed: controller.reset,
                   icon: const Icon(Icons.add_a_photo_outlined, size: 18),
@@ -121,9 +139,62 @@ class _DiagnosisView extends StatelessWidget {
                 ),
               const SizedBox(height: 20),
               _ResultPanel(controller: controller, busy: busy),
+              if (controller.status == DiagnosisStatus.done) ...[
+                const SizedBox(height: 12),
+                ResultActions(
+                  summary: controller.summary,
+                  savedToFieldId: controller.savedToFieldId,
+                  onSaved: controller.markSaved,
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shows the outcome of [PhotoQuality.check] while a picked photo awaits
+/// confirmation: nothing while checking or when fine, else what's wrong and
+/// how to fix it.
+class _PhotoCheck extends StatelessWidget {
+  const _PhotoCheck({required this.issues});
+  final List<PhotoIssue>? issues;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final found = issues;
+    if (found == null || found.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: p.paper2,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: p.rust, width: 1.4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('This photo may give a poor answer',
+              style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 6),
+          for (final issue in found)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text.rich(
+                TextSpan(children: [
+                  TextSpan(
+                      text: '${issue.title}. ',
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                  TextSpan(text: issue.fix),
+                ]),
+                style: TextStyle(fontSize: 13, height: 1.35, color: p.ink),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -140,7 +211,7 @@ class _ViewfinderHint extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [p.paper2, p.hairline.withValues(alpha: 1), p.paper2],
+          colors: [p.paper2, p.paper, p.paper2],
         ),
       ),
       child: Center(

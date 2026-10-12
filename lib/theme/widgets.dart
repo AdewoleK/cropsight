@@ -80,9 +80,18 @@ class ScanFrame extends StatefulWidget {
 }
 
 class _ScanFrameState extends State<ScanFrame> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
-        ..repeat(reverse: true);
+  // Created eagerly: a lazy `late final` would first be touched in
+  // dispose() when the frame never scanned, creating a ticker on a
+  // deactivated element.
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
+          ..repeat(reverse: true);
+  }
 
   @override
   void dispose() {
@@ -464,7 +473,46 @@ class OfflinePill extends StatelessWidget {
   }
 }
 
-/// The two-tab pill bottom navigation: Diagnose / Log.
+/// Safety guidance for chemical treatments — a heavy ink rule rather than a
+/// colour, since fern/marigold/brick are reserved for confidence.
+class SafetyNote extends StatelessWidget {
+  const SafetyNote({super.key, required this.text, this.title = 'Stay safe'});
+
+  final String text;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: p.paper2,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(left: BorderSide(color: p.ink, width: 4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.health_and_safety_outlined, size: 20, color: p.ink),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+                const SizedBox(height: 4),
+                Text(text, style: TextStyle(fontSize: 13, height: 1.4, color: p.ink)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The pill bottom navigation across the app's top-level tabs.
 class CropSightBottomNav extends StatelessWidget {
   const CropSightBottomNav({super.key, required this.index, required this.onChanged});
 
@@ -473,7 +521,9 @@ class CropSightBottomNav extends StatelessWidget {
 
   static const _tabs = [
     (Icons.center_focus_strong_outlined, 'Diagnose'),
-    (Icons.menu_book_outlined, 'Log'),
+    (Icons.grass_outlined, 'Fields'),
+    (Icons.menu_book_outlined, 'Library'),
+    (Icons.receipt_long_outlined, 'Log'),
   ];
 
   @override
@@ -482,13 +532,13 @@ class CropSightBottomNav extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         child: Row(
           children: [
             for (var i = 0; i < _tabs.length; i++)
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(right: i == 0 ? 8 : 0),
+                  padding: EdgeInsets.only(right: i < _tabs.length - 1 ? 6 : 0),
                   child: GestureDetector(
                     onTap: () => onChanged(i),
                     child: AnimatedContainer(
