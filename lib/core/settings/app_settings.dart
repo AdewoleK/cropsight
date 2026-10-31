@@ -48,6 +48,9 @@ class AppSettings extends ChangeNotifier {
   static const _languageKey = 'answer_language';
   static const _modeKey = 'diagnosis_mode';
   static const _liteReadyKey = 'lite_setup_done';
+  static const _shareReportsKey = 'share_reports';
+  static const _stateKey = 'report_state_pcode';
+  static const _lgaKey = 'report_lga_pcode';
 
   final SharedPreferences _prefs;
 
@@ -97,6 +100,30 @@ class AppSettings extends ChangeNotifier {
 
   set liteReady(bool value) {
     _prefs.setBool(_liteReadyKey, value);
+    notifyListeners();
+  }
+
+  /// Farmer's consent to send anonymised results (no photo, no text) to
+  /// plant-health officers for outbreak watching. Off until they turn it on.
+  bool get shareReports => _prefs.getBool(_shareReportsKey) ?? false;
+
+  set shareReports(bool value) {
+    _prefs.setBool(_shareReportsKey, value);
+    notifyListeners();
+  }
+
+  /// Where the farmer farms, as OCHA P-codes. Picked by hand, never from GPS,
+  /// so no exact location is ever recorded.
+  String? get reportStatePcode => _prefs.getString(_stateKey);
+  String? get reportLgaPcode => _prefs.getString(_lgaKey);
+
+  void setReportRegion({required String statePcode, String? lgaPcode}) {
+    _prefs.setString(_stateKey, statePcode);
+    if (lgaPcode == null) {
+      _prefs.remove(_lgaKey);
+    } else {
+      _prefs.setString(_lgaKey, lgaPcode);
+    }
     notifyListeners();
   }
 }

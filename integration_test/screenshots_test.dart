@@ -23,6 +23,7 @@ import 'package:cropsight/theme/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemma/core/api/flutter_gemma.dart';
 import 'package:flutter_gemma_embeddings/flutter_gemma_embeddings.dart';
+import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
 import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
@@ -72,7 +73,7 @@ void main() {
   testWidgets('capture every screen', timeout: const Timeout(Duration(minutes: 40)),
       (t) async {
     await FlutterGemma.initialize(
-      inferenceEngines: [const MediaPipeEngine()],
+      inferenceEngines: [const MediaPipeEngine(), const LiteRtLmEngine()],
       embeddingBackends: [const LiteRtEmbeddingBackend()],
     );
     await DeviceCapability.load();

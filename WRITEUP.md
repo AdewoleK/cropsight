@@ -152,6 +152,6 @@ heading for the Play Store or App Store. Distributed as a direct APK install
 - No real backend exists for sync yet — `SyncTarget` is pluggable specifically
   so one can be wired in later without touching the queueing/connectivity
   logic.
-- iOS bundling is documented (`ios/SETUP.md`) but not implemented — this repo
-  is Android-first, and the manual Xcode steps haven't actually been
-  exercised.
+- iOS is wired up and runs on the Simulator (`ios/SETUP.md`), using the
+  LiteRT-LM engine for photos. Photo diagnosis still needs a run on a real
+  6GB+ iPhone: the Simulator's emulated GPU hangs partway through.

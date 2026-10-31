@@ -81,7 +81,8 @@ SOURCES: <reference card name(s) you used, comma-separated>
         'Write every value in ${language.promptName}, in simple everyday words. '
         'Keep the labels CROP, PROBLEM, CONFIDENCE, WHY, STEPS and SOURCES in '
         'English, write the CONFIDENCE value as the English word low, medium, '
-        'or high, and keep SOURCES as the English card names.\n';
+        'or high, keep SOURCES as the English card names, and if nothing '
+        'matches write PROBLEM as the English words "unclear match".\n';
   }
 
   Future<void> setImage(Uint8List bytes) async {
@@ -147,18 +148,44 @@ SOURCES: <reference card name(s) you used, comma-separated>
       }
 
       status = DiagnosisStatus.done;
+      final structured = StructuredDiagnosis.tryParse(answer);
+      final cited = reportedCards(sources, structured?.sourcesText);
       unawaited(SyncService.instance.enqueueResult(DiagnosisResult(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         timestamp: DateTime.now(),
         description: description,
         answer: answer,
-        citedCards: sources.map(CitedCard.fromRetrieved).toList(),
+        // Nothing cited: still send the top hit so it counts toward what
+        // farmers report, but with no confidence it can't trigger an alert.
+        citedCards: (cited.isEmpty ? sources.take(1) : cited)
+            .map(CitedCard.fromRetrieved)
+            .toList(),
+        source: DiagnosisSource.photo,
+        // The model's confidence is about the card it cited. If it cited none
+        // of the retrieved cards, there's nothing it vouched for.
+        confidence: cited.isEmpty ? null : structured?.confidenceLevel,
+        unclear: structured?.problem?.toLowerCase().contains('unclear') ?? false,
       )));
     } catch (e) {
       error = e.toString();
       status = DiagnosisStatus.error;
     }
     notifyListeners();
+  }
+
+  /// The retrieved cards the model actually named in SOURCES, in its order.
+  /// The report carries these rather than the top retrieval hit, so the
+  /// problem sent matches the one the farmer was told about.
+  static List<RetrievedCard> reportedCards(
+      List<RetrievedCard> retrieved, String? sourcesText) {
+    final named = (sourcesText ?? '').toLowerCase();
+    final hits = retrieved
+        .where((r) => named.contains(r.card.title.toLowerCase()))
+        .toList()
+      ..sort((a, b) => named
+          .indexOf(a.card.title.toLowerCase())
+          .compareTo(named.indexOf(b.card.title.toLowerCase())));
+    return hits;
   }
 
   void reset() {

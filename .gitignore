@@ -26,3 +26,7 @@ android/app/src/main/assets/models/*.model
 # Gradle/Kotlin build caches
 android/.kotlin/
 android/.gradle/
+
+# Surveillance server database (local data, not code)
+server/*.db
+__pycache__/

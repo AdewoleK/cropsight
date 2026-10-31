@@ -1,0 +1,585 @@
+{
+ "knowledge_base_version": 2,
+ "cards": {
+  "cassava_mosaic": {
+   "crop": "Cassava",
+   "title": "Cassava mosaic disease",
+   "kind": "disease"
+  },
+  "cassava_bacterial_blight": {
+   "crop": "Cassava",
+   "title": "Cassava bacterial blight",
+   "kind": "disease"
+  },
+  "cassava_brown_streak": {
+   "crop": "Cassava",
+   "title": "Cassava brown streak disease",
+   "kind": "disease"
+  },
+  "cassava_anthracnose": {
+   "crop": "Cassava",
+   "title": "Cassava anthracnose disease",
+   "kind": "disease"
+  },
+  "cassava_root_rot": {
+   "crop": "Cassava",
+   "title": "Cassava root rot",
+   "kind": "disease"
+  },
+  "cassava_green_mite": {
+   "crop": "Cassava",
+   "title": "Cassava green mite",
+   "kind": "pest"
+  },
+  "cassava_mealybug": {
+   "crop": "Cassava",
+   "title": "Cassava mealybug",
+   "kind": "pest"
+  },
+  "maize_streak_virus": {
+   "crop": "Maize",
+   "title": "Maize streak virus",
+   "kind": "disease"
+  },
+  "maize_leaf_blight": {
+   "crop": "Maize",
+   "title": "Northern corn leaf blight",
+   "kind": "disease"
+  },
+  "maize_lethal_necrosis": {
+   "crop": "Maize",
+   "title": "Maize lethal necrosis (MLN)",
+   "kind": "disease"
+  },
+  "maize_gray_leaf_spot": {
+   "crop": "Maize",
+   "title": "Grey leaf spot",
+   "kind": "disease"
+  },
+  "maize_common_rust": {
+   "crop": "Maize",
+   "title": "Common rust",
+   "kind": "disease"
+  },
+  "maize_ear_rot_aflatoxin": {
+   "crop": "Maize",
+   "title": "Ear rot and aflatoxin",
+   "kind": "disease"
+  },
+  "maize_downy_mildew": {
+   "crop": "Maize",
+   "title": "Downy mildew",
+   "kind": "disease"
+  },
+  "fall_armyworm": {
+   "crop": "Maize",
+   "title": "Fall armyworm",
+   "kind": "pest"
+  },
+  "maize_stem_borer": {
+   "crop": "Maize",
+   "title": "Stem borers",
+   "kind": "pest"
+  },
+  "stored_grain_weevils": {
+   "crop": "Maize",
+   "title": "Grain weevils and larger grain borer",
+   "kind": "pest"
+  },
+  "sorghum_anthracnose": {
+   "crop": "Sorghum",
+   "title": "Sorghum anthracnose",
+   "kind": "disease"
+  },
+  "sorghum_covered_smut": {
+   "crop": "Sorghum",
+   "title": "Covered kernel smut",
+   "kind": "disease"
+  },
+  "sorghum_aphid": {
+   "crop": "Sorghum",
+   "title": "Sugarcane aphid on sorghum",
+   "kind": "pest"
+  },
+  "millet_downy_mildew": {
+   "crop": "Millet",
+   "title": "Downy mildew (green ear)",
+   "kind": "disease"
+  },
+  "millet_head_miner": {
+   "crop": "Millet",
+   "title": "Millet head miner",
+   "kind": "pest"
+  },
+  "rice_blast": {
+   "crop": "Rice",
+   "title": "Rice blast",
+   "kind": "disease"
+  },
+  "rice_yellow_mottle_virus": {
+   "crop": "Rice",
+   "title": "Rice yellow mottle virus",
+   "kind": "disease"
+  },
+  "rice_bacterial_leaf_blight": {
+   "crop": "Rice",
+   "title": "Bacterial leaf blight",
+   "kind": "disease"
+  },
+  "rice_brown_spot": {
+   "crop": "Rice",
+   "title": "Brown spot",
+   "kind": "disease"
+  },
+  "rice_gall_midge": {
+   "crop": "Rice",
+   "title": "African rice gall midge",
+   "kind": "pest"
+  },
+  "yam_anthracnose": {
+   "crop": "Yam",
+   "title": "Yam anthracnose (leaf scorch)",
+   "kind": "disease"
+  },
+  "yam_mosaic_virus": {
+   "crop": "Yam",
+   "title": "Yam mosaic virus",
+   "kind": "disease"
+  },
+  "yam_nematodes": {
+   "crop": "Yam",
+   "title": "Yam nematodes and dry rot",
+   "kind": "pest"
+  },
+  "cocoyam_leaf_blight": {
+   "crop": "Cocoyam",
+   "title": "Taro leaf blight",
+   "kind": "disease"
+  },
+  "cocoyam_root_rot": {
+   "crop": "Cocoyam",
+   "title": "Cocoyam root rot",
+   "kind": "disease"
+  },
+  "sweet_potato_virus_disease": {
+   "crop": "Sweet potato",
+   "title": "Sweet potato virus disease",
+   "kind": "disease"
+  },
+  "sweet_potato_weevil": {
+   "crop": "Sweet potato",
+   "title": "Sweet potato weevil",
+   "kind": "pest"
+  },
+  "potato_late_blight": {
+   "crop": "Potato",
+   "title": "Potato late blight",
+   "kind": "disease"
+  },
+  "potato_bacterial_wilt": {
+   "crop": "Potato",
+   "title": "Potato bacterial wilt",
+   "kind": "disease"
+  },
+  "cowpea_pod_borer": {
+   "crop": "Cowpea",
+   "title": "Legume pod borer (Maruca)",
+   "kind": "pest"
+  },
+  "cowpea_flower_thrips": {
+   "crop": "Cowpea",
+   "title": "Flower thrips",
+   "kind": "pest"
+  },
+  "legume_bruchids": {
+   "crop": "Many crops",
+   "title": "Bruchids in stored beans and cowpea",
+   "kind": "pest"
+  },
+  "bean_angular_leaf_spot": {
+   "crop": "Common bean",
+   "title": "Angular leaf spot",
+   "kind": "disease"
+  },
+  "bean_anthracnose": {
+   "crop": "Common bean",
+   "title": "Bean anthracnose",
+   "kind": "disease"
+  },
+  "bean_rust": {
+   "crop": "Common bean",
+   "title": "Bean rust",
+   "kind": "disease"
+  },
+  "bean_common_mosaic": {
+   "crop": "Common bean",
+   "title": "Bean common mosaic",
+   "kind": "disease"
+  },
+  "bean_stem_maggot": {
+   "crop": "Common bean",
+   "title": "Bean stem maggot (bean fly)",
+   "kind": "pest"
+  },
+  "groundnut_rosette": {
+   "crop": "Groundnut",
+   "title": "Groundnut rosette",
+   "kind": "disease"
+  },
+  "groundnut_leaf_spot": {
+   "crop": "Groundnut",
+   "title": "Early and late leaf spot",
+   "kind": "disease"
+  },
+  "groundnut_rust": {
+   "crop": "Groundnut",
+   "title": "Groundnut rust",
+   "kind": "disease"
+  },
+  "groundnut_aflatoxin": {
+   "crop": "Groundnut",
+   "title": "Aflatoxin mould",
+   "kind": "disease"
+  },
+  "soybean_rust": {
+   "crop": "Soybean",
+   "title": "Soybean rust",
+   "kind": "disease"
+  },
+  "banana_xanthomonas_wilt": {
+   "crop": "Banana",
+   "title": "Banana Xanthomonas wilt (BXW)",
+   "kind": "disease"
+  },
+  "banana_bunchy_top": {
+   "crop": "Banana",
+   "title": "Banana bunchy top (BBTV)",
+   "kind": "disease"
+  },
+  "banana_black_sigatoka": {
+   "crop": "Banana",
+   "title": "Black Sigatoka (black leaf streak)",
+   "kind": "disease"
+  },
+  "banana_fusarium_wilt": {
+   "crop": "Banana",
+   "title": "Fusarium wilt (Panama disease)",
+   "kind": "disease"
+  },
+  "banana_weevil": {
+   "crop": "Banana",
+   "title": "Banana weevil",
+   "kind": "pest"
+  },
+  "banana_nematodes": {
+   "crop": "Banana",
+   "title": "Banana root nematodes",
+   "kind": "pest"
+  },
+  "cocoa_black_pod": {
+   "crop": "Cocoa",
+   "title": "Black pod disease",
+   "kind": "disease"
+  },
+  "cocoa_swollen_shoot": {
+   "crop": "Cocoa",
+   "title": "Cocoa swollen shoot virus (CSSV)",
+   "kind": "disease"
+  },
+  "cocoa_mirids": {
+   "crop": "Cocoa",
+   "title": "Cocoa mirids (capsids)",
+   "kind": "pest"
+  },
+  "coffee_berry_disease": {
+   "crop": "Coffee",
+   "title": "Coffee berry disease (CBD)",
+   "kind": "disease"
+  },
+  "coffee_leaf_rust": {
+   "crop": "Coffee",
+   "title": "Coffee leaf rust",
+   "kind": "disease"
+  },
+  "coffee_wilt_disease": {
+   "crop": "Coffee",
+   "title": "Coffee wilt disease",
+   "kind": "disease"
+  },
+  "coffee_berry_borer": {
+   "crop": "Coffee",
+   "title": "Coffee berry borer",
+   "kind": "pest"
+  },
+  "tea_root_rot": {
+   "crop": "Tea",
+   "title": "Armillaria root rot",
+   "kind": "disease"
+  },
+  "cotton_bacterial_blight": {
+   "crop": "Cotton",
+   "title": "Bacterial blight (blackarm)",
+   "kind": "disease"
+  },
+  "cotton_jassids": {
+   "crop": "Cotton",
+   "title": "Cotton jassids (leafhoppers)",
+   "kind": "pest"
+  },
+  "cotton_stainers": {
+   "crop": "Cotton",
+   "title": "Cotton stainers",
+   "kind": "pest"
+  },
+  "tomato_late_blight": {
+   "crop": "Tomato",
+   "title": "Late blight",
+   "kind": "disease"
+  },
+  "tomato_early_blight": {
+   "crop": "Tomato",
+   "title": "Early blight",
+   "kind": "disease"
+  },
+  "tomato_tuta_absoluta": {
+   "crop": "Tomato",
+   "title": "Tomato leafminer (Tuta absoluta)",
+   "kind": "pest"
+  },
+  "tomato_bacterial_wilt": {
+   "crop": "Tomato",
+   "title": "Bacterial wilt",
+   "kind": "disease"
+  },
+  "tomato_yellow_leaf_curl": {
+   "crop": "Tomato",
+   "title": "Tomato yellow leaf curl",
+   "kind": "disease"
+  },
+  "tomato_fusarium_wilt": {
+   "crop": "Tomato",
+   "title": "Fusarium wilt",
+   "kind": "disease"
+  },
+  "tomato_blossom_end_rot": {
+   "crop": "Tomato",
+   "title": "Blossom end rot",
+   "kind": "disorder"
+  },
+  "pepper_bacterial_leaf_spot": {
+   "crop": "Pepper",
+   "title": "Bacterial leaf spot",
+   "kind": "disease"
+  },
+  "pepper_anthracnose": {
+   "crop": "Pepper",
+   "title": "Pepper anthracnose (fruit rot)",
+   "kind": "disease"
+  },
+  "pepper_viruses": {
+   "crop": "Pepper",
+   "title": "Pepper mosaic and mottle viruses",
+   "kind": "disease"
+  },
+  "pepper_sunscald": {
+   "crop": "Pepper",
+   "title": "Sunscald",
+   "kind": "disorder"
+  },
+  "okra_flea_beetle": {
+   "crop": "Okra",
+   "title": "Flea beetles on okra",
+   "kind": "pest"
+  },
+  "onion_purple_blotch": {
+   "crop": "Onion",
+   "title": "Purple blotch",
+   "kind": "disease"
+  },
+  "onion_thrips": {
+   "crop": "Onion",
+   "title": "Onion thrips",
+   "kind": "pest"
+  },
+  "cabbage_diamondback_moth": {
+   "crop": "Cabbage",
+   "title": "Diamondback moth",
+   "kind": "pest"
+  },
+  "cabbage_black_rot": {
+   "crop": "Cabbage",
+   "title": "Black rot",
+   "kind": "disease"
+  },
+  "cucurbit_downy_mildew": {
+   "crop": "Cucurbits",
+   "title": "Downy mildew",
+   "kind": "disease"
+  },
+  "cucurbit_powdery_mildew": {
+   "crop": "Cucurbits",
+   "title": "Powdery mildew",
+   "kind": "disease"
+  },
+  "cucurbit_fruit_fly": {
+   "crop": "Cucurbits",
+   "title": "Melon fruit fly",
+   "kind": "pest"
+  },
+  "citrus_greening": {
+   "crop": "Citrus",
+   "title": "Citrus greening (HLB)",
+   "kind": "disease"
+  },
+  "citrus_gummosis": {
+   "crop": "Citrus",
+   "title": "Phytophthora gummosis and foot rot",
+   "kind": "disease"
+  },
+  "citrus_fruit_leaf_spot": {
+   "crop": "Citrus",
+   "title": "Pseudocercospora fruit and leaf spot",
+   "kind": "disease"
+  },
+  "mango_anthracnose": {
+   "crop": "Mango",
+   "title": "Mango anthracnose",
+   "kind": "disease"
+  },
+  "mango_fruit_fly": {
+   "crop": "Mango",
+   "title": "Mango fruit flies",
+   "kind": "pest"
+  },
+  "mango_powdery_mildew": {
+   "crop": "Mango",
+   "title": "Mango powdery mildew",
+   "kind": "disease"
+  },
+  "cashew_powdery_mildew": {
+   "crop": "Cashew",
+   "title": "Cashew powdery mildew",
+   "kind": "disease"
+  },
+  "cashew_sucking_bugs": {
+   "crop": "Cashew",
+   "title": "Cashew sucking bugs",
+   "kind": "pest"
+  },
+  "oil_palm_vascular_wilt": {
+   "crop": "Oil palm",
+   "title": "Fusarium vascular wilt",
+   "kind": "disease"
+  },
+  "african_bollworm": {
+   "crop": "Many crops",
+   "title": "African bollworm (Helicoverpa)",
+   "kind": "pest"
+  },
+  "aphids": {
+   "crop": "Many crops",
+   "title": "Aphids",
+   "kind": "pest"
+  },
+  "whiteflies": {
+   "crop": "Many crops",
+   "title": "Whiteflies",
+   "kind": "pest"
+  },
+  "locusts": {
+   "crop": "Many crops",
+   "title": "Locusts and grasshopper swarms",
+   "kind": "pest"
+  },
+  "termites": {
+   "crop": "Many crops",
+   "title": "Termites",
+   "kind": "pest"
+  },
+  "red_spider_mite": {
+   "crop": "Many crops",
+   "title": "Red spider mites",
+   "kind": "pest"
+  },
+  "root_knot_nematodes": {
+   "crop": "Many crops",
+   "title": "Root-knot nematodes",
+   "kind": "pest"
+  },
+  "striga": {
+   "crop": "Many crops",
+   "title": "Striga (witchweed)",
+   "kind": "pest"
+  },
+  "african_armyworm": {
+   "crop": "Many crops",
+   "title": "African armyworm",
+   "kind": "pest"
+  },
+  "cutworms": {
+   "crop": "Many crops",
+   "title": "Cutworms",
+   "kind": "pest"
+  },
+  "nitrogen_deficiency": {
+   "crop": "Many crops",
+   "title": "Nitrogen deficiency",
+   "kind": "deficiency"
+  },
+  "phosphorus_deficiency": {
+   "crop": "Many crops",
+   "title": "Phosphorus deficiency",
+   "kind": "deficiency"
+  },
+  "potassium_deficiency": {
+   "crop": "Many crops",
+   "title": "Potassium deficiency",
+   "kind": "deficiency"
+  },
+  "magnesium_deficiency": {
+   "crop": "Many crops",
+   "title": "Magnesium deficiency",
+   "kind": "deficiency"
+  },
+  "zinc_deficiency": {
+   "crop": "Many crops",
+   "title": "Zinc deficiency",
+   "kind": "deficiency"
+  },
+  "iron_deficiency": {
+   "crop": "Many crops",
+   "title": "Iron deficiency",
+   "kind": "deficiency"
+  },
+  "sulphur_deficiency": {
+   "crop": "Many crops",
+   "title": "Sulphur deficiency",
+   "kind": "deficiency"
+  },
+  "boron_deficiency": {
+   "crop": "Many crops",
+   "title": "Boron deficiency",
+   "kind": "deficiency"
+  },
+  "drought_stress": {
+   "crop": "Many crops",
+   "title": "Drought stress",
+   "kind": "disorder"
+  },
+  "waterlogging": {
+   "crop": "Many crops",
+   "title": "Waterlogging",
+   "kind": "disorder"
+  },
+  "herbicide_injury": {
+   "crop": "Many crops",
+   "title": "Herbicide injury",
+   "kind": "disorder"
+  },
+  "fertiliser_burn": {
+   "crop": "Many crops",
+   "title": "Fertiliser burn",
+   "kind": "disorder"
+  }
+ }
+}

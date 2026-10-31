@@ -35,6 +35,10 @@ class EmbeddingService {
 
   /// Embed a single string into a 768-dim vector.
   Future<List<double>> embed(String text) async {
+    // flutter_gemma only restores the active embedder on relaunch when its
+    // file is in app documents; on iOS it's read from Bundle.main, so the
+    // choice is lost. Re-registering is instant there (no copy).
+    if (!FlutterGemma.hasActiveEmbedder()) await installEmbedder();
     final embedder = await FlutterGemma.getActiveEmbedder();
     return embedder.generateEmbedding(text);
   }

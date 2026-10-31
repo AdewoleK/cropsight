@@ -36,13 +36,19 @@ class GemmaService {
       CropSightModel.fileName,
       onProgress: onProgress,
     );
-    await FlutterGemma.installModel(modelType: CropSightModel.modelType)
-        .fromBundled(CropSightModel.fileName)
+    await FlutterGemma.installModel(
+      modelType: CropSightModel.modelType,
+      fileType: CropSightModel.fileType,
+    ).fromBundled(CropSightModel.fileName)
         .install();
   }
 
   /// Lazily create the on-device inference model (multimodal enabled).
   Future<InferenceModel> _ensureModel() async {
+    // flutter_gemma only restores the active model on relaunch when its file
+    // is in app documents; on iOS it's read from Bundle.main, so the choice is
+    // lost. Re-registering is instant there (no copy).
+    if (_model == null && !FlutterGemma.hasActiveModel()) await installModel();
     return _model ??= await FlutterGemma.getActiveModel(
       maxTokens: CropSightModel.maxTokens,
       preferredBackend: CropSightModel.preferredBackend,

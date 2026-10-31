@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../settings/app_settings.dart';
 import 'diagnosis_result.dart';
 import 'sync_store.dart';
 import 'sync_target.dart';
@@ -18,11 +19,15 @@ class SyncService {
   StreamSubscription<List<ConnectivityResult>>? _subscription;
   bool _started = false;
 
+  AppSettings? _settings;
+
   /// Registers the connectivity listener. Safe to call once at app startup;
   /// a no-op endpoint means this never attempts any network access.
-  void start() {
+  /// [settings] supplies the farmer's reporting consent and LGA.
+  void start(AppSettings settings) {
     if (_started) return;
     _started = true;
+    _settings = settings;
 
     const endpoint = String.fromEnvironment('SYNC_ENDPOINT');
     if (endpoint.isNotEmpty) {
@@ -37,21 +42,40 @@ class SyncService {
     });
   }
 
-  /// Queue a completed diagnosis for sync. Best-effort — failures here must
-  /// never surface as a diagnosis error.
+  /// Queue a completed diagnosis for sync, stamped with the farmer's current
+  /// consent and LGA, then try to send it straight away. Best-effort —
+  /// failures here must never surface as a diagnosis error.
   Future<void> enqueueResult(DiagnosisResult result) async {
+    final settings = _settings;
     try {
-      await _store.add(result);
+      await _store.add(result.withReporting(
+        shared: settings?.shareReports ?? false,
+        statePcode: settings?.reportStatePcode,
+        lgaPcode: settings?.reportLgaPcode,
+      ));
     } catch (_) {
       // Local storage failure shouldn't break the diagnosis flow.
+      return;
     }
+    await syncNow();
   }
 
   /// Flush whatever's pending through the current target. Safe to call any
   /// time (e.g. a manual "Sync now" button) — no-ops if sync is disabled or
   /// nothing is pending.
+  bool _syncing = false;
+
   Future<void> syncNow() async {
-    if (_target is NoopSyncTarget) return;
+    if (_target is NoopSyncTarget || _syncing) return;
+    _syncing = true;
+    try {
+      await _syncPending();
+    } finally {
+      _syncing = false;
+    }
+  }
+
+  Future<void> _syncPending() async {
     final pending = await _store.pending();
     if (pending.isEmpty) return;
 

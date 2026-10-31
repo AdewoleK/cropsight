@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/ai/device_capability.dart';
+import '../../core/reporting/region_catalog.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/speech/speech_service.dart';
 import '../../theme/app_theme.dart';
@@ -147,14 +148,101 @@ class SettingsScreen extends StatelessWidget {
             label: const Text('Test voice'),
           ),
           const SizedBox(height: 24),
+          const SectionLabel('Disease reporting'),
+          const _ReportingSection(),
+          const SizedBox(height: 24),
           const SectionLabel('Privacy'),
           Text(
             'No account, no sign-in. Photos, fields and reminders stay on this '
-            'phone. The AI runs on the phone and works with no internet.',
+            'phone. The AI runs on the phone and works with no internet. If '
+            'you turn on disease reporting, only the name of the problem, '
+            'how sure the app was, the date and your LGA are sent.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Consent switch plus state and LGA pickers. Reports let plant-health
+/// officers spot an outbreak early when several farmers in one area find the
+/// same problem.
+class _ReportingSection extends StatelessWidget {
+  const _ReportingSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
+    final textTheme = Theme.of(context).textTheme;
+
+    return FutureBuilder<RegionCatalog>(
+      future: RegionCatalog.load(),
+      builder: (context, snapshot) {
+        final catalog = snapshot.data;
+        final state = catalog?.state(settings.reportStatePcode);
+        final lgaSet = state?.lgas
+                .any((l) => l.pcode == settings.reportLgaPcode) ??
+            false;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Help plant-health officers spot outbreaks early. When several '
+              'farmers in one area find the same problem, officers can warn '
+              'farms nearby. Your photo and the written answer never leave '
+              'this phone — only the problem\'s name, how sure the app was, '
+              'the date and your LGA.',
+              style: textTheme.bodySmall,
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Share my results',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: const Text('Anonymous. You can turn this off any time.'),
+              value: settings.shareReports,
+              onChanged: (v) => settings.shareReports = v,
+            ),
+            if (catalog != null) ...[
+              DropdownButtonFormField<String>(
+                initialValue: state?.pcode,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'State'),
+                items: [
+                  for (final s in catalog.states)
+                    DropdownMenuItem(value: s.pcode, child: Text(s.name)),
+                ],
+                onChanged: (pcode) {
+                  if (pcode != null) settings.setReportRegion(statePcode: pcode);
+                },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                key: ValueKey(state?.pcode),
+                initialValue: lgaSet ? settings.reportLgaPcode : null,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                    labelText: 'Local government area (LGA)'),
+                items: [
+                  for (final l in state?.lgas ?? const <Lga>[])
+                    DropdownMenuItem(value: l.pcode, child: Text(l.name)),
+                ],
+                onChanged: state == null
+                    ? null
+                    : (pcode) => settings.setReportRegion(
+                        statePcode: state.pcode, lgaPcode: pcode),
+              ),
+              if (settings.shareReports && !lgaSet) ...[
+                const SizedBox(height: 6),
+                Text('Pick your LGA so your results can be counted.',
+                    style: textTheme.bodySmall
+                        ?.copyWith(color: context.palette.brick)),
+              ],
+            ],
+          ],
+        );
+      },
     );
   }
 }

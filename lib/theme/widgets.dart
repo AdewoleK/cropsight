@@ -6,10 +6,12 @@ import 'app_theme.dart';
 /// brackets, stamped tags, ledger rows — the parts every screen reuses so
 /// the app reads as one designed system rather than four separate screens.
 
-/// A hand-drawn sprout mark inside a ring — CropSight's brand glyph, used in
-/// place of a generic leaf icon.
-class SproutMark extends StatelessWidget {
-  const SproutMark({super.key, this.size = 72, this.color});
+/// CropSight's brand glyph: a leaf inside scan brackets, the same mark as
+/// the app icon (assets/branding/cropsight-icon.svg). Drawn on a 100-unit
+/// grid matching that SVG; the leaf's veins are cut out so it reads on any
+/// background.
+class CropSightMark extends StatelessWidget {
+  const CropSightMark({super.key, this.size = 72, this.color});
 
   final double size;
   final Color? color;
@@ -20,43 +22,69 @@ class SproutMark extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _SproutPainter(c)),
+      child: CustomPaint(painter: _CropSightMarkPainter(c)),
     );
   }
 }
 
-class _SproutPainter extends CustomPainter {
-  _SproutPainter(this.color);
+class _CropSightMarkPainter extends CustomPainter {
+  _CropSightMarkPainter(this.color);
   final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final ringPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.045;
-    canvas.drawCircle(size.center(Offset.zero), size.width / 2 - ringPaint.strokeWidth,
-        ringPaint);
+    canvas.saveLayer(Offset.zero & size, Paint());
+    canvas.scale(size.width / 100, size.height / 100);
 
-    final leafPaint = Paint()
+    Paint line(double width, {BlendMode mode = BlendMode.srcOver}) => Paint()
       ..color = color
+      ..blendMode = mode
       ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.05
+      ..strokeWidth = width
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    final w = size.width, h = size.height;
+    final brackets = Path()
+      ..moveTo(22, 36)
+      ..lineTo(22, 22)
+      ..lineTo(36, 22)
+      ..moveTo(64, 22)
+      ..lineTo(78, 22)
+      ..lineTo(78, 36)
+      ..moveTo(22, 64)
+      ..lineTo(22, 78)
+      ..lineTo(36, 78)
+      ..moveTo(64, 78)
+      ..lineTo(78, 78)
+      ..lineTo(78, 64);
+    canvas.drawPath(brackets, line(5));
+
     final leaf = Path()
-      ..moveTo(w * 0.5, h * 0.78)
-      ..cubicTo(w * 0.5, h * 0.55, w * 0.28, h * 0.5, w * 0.30, h * 0.3)
-      ..cubicTo(w * 0.5, h * 0.32, w * 0.62, h * 0.42, w * 0.5, h * 0.62)
-      ..cubicTo(w * 0.62, h * 0.42, w * 0.72, h * 0.3, w * 0.70, h * 0.22)
-      ..cubicTo(w * 0.5, h * 0.2, w * 0.5, h * 0.5, w * 0.5, h * 0.78);
-    canvas.drawPath(leaf, leafPaint);
+      ..moveTo(37, 63)
+      ..cubicTo(33, 46, 47, 34, 66, 34)
+      ..cubicTo(66, 53, 54, 67, 37, 63)
+      ..close();
+    canvas.drawPath(leaf, Paint()..color = color);
+    canvas.drawLine(const Offset(37, 63), const Offset(32, 68), line(3.4));
+
+    canvas.drawLine(const Offset(39.5, 60.5), const Offset(61, 39),
+        line(2.2, mode: BlendMode.clear));
+    final veins = Path()
+      ..moveTo(47, 53)
+      ..lineTo(43.5, 46.5)
+      ..moveTo(47, 53)
+      ..lineTo(53.5, 56.5)
+      ..moveTo(53, 47)
+      ..lineTo(50.5, 41.5)
+      ..moveTo(53, 47)
+      ..lineTo(58.5, 49.5);
+    canvas.drawPath(veins, line(1.6, mode: BlendMode.clear));
+
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _SproutPainter oldDelegate) =>
+  bool shouldRepaint(covariant _CropSightMarkPainter oldDelegate) =>
       oldDelegate.color != color;
 }
 

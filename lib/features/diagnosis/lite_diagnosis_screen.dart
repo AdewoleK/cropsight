@@ -73,6 +73,10 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
   bool _searching = false;
   String? _error;
   String _query = '';
+
+  /// One report per search: choosing a different match replaces it rather
+  /// than reporting a second problem.
+  String _reportId = '';
   List<RetrievedCard>? _matches;
   RetrievedCard? _chosen;
   String? _savedToFieldId;
@@ -104,6 +108,7 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
       _chosen = null;
       _savedToFieldId = null;
       _query = query;
+      _reportId = DateTime.now().millisecondsSinceEpoch.toString();
     });
     try {
       final matches =
@@ -118,11 +123,12 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
   void _choose(RetrievedCard match) {
     setState(() => _chosen = match);
     unawaited(SyncService.instance.enqueueResult(DiagnosisResult(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: _reportId,
       timestamp: DateTime.now(),
       description: _query,
       answer: 'Lite match: ${match.card.label}',
       citedCards: [CitedCard.fromRetrieved(match)],
+      source: DiagnosisSource.lite,
     )));
   }
 

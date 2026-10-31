@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CropSight Plant Health Watch</title>
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <img src="icon.svg" alt="" class="logo">
+    <div>
+      <h1>CropSight <span>Plant Health Watch</span></h1>
+      <p class="sub">Crop disease and pest reports from farmers' phones · Nigeria</p>
+    </div>
+    <div class="updated" id="updated">Loading…</div>
+  </header>
+
+  <div class="banner" id="sim-banner" hidden>
+    This view includes <strong>simulated demonstration data</strong>, marked “Simulated”.
+    Reports from real phones are marked “Phone”.
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <main class="grid">
+    <section class="panel map-panel">
+      <div class="panel-head">
+        <h2>Last 14 days by LGA</h2>
+        <div class="legend">
+          <span><i class="sw alert"></i>Alert</span>
+          <span><i class="sw watch"></i>Watch</span>
+          <span><i class="sw reports"></i>Reports</span>
+          <span><i class="sw none"></i>None</span>
+        </div>
+      </div>
+      <div class="map-wrap">
+        <svg id="map" role="img" aria-label="Map of Nigeria's LGAs coloured by alert level"></svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="lga-detail" id="lga-detail">Tap an LGA on the map to see its reports.</div>
+    </section>
+
+    <section class="panel alerts-panel">
+      <div class="panel-head">
+        <h2>Alerts for review</h2>
+        <label class="toggle"><input type="checkbox" id="show-all"> Show reviewed</label>
+      </div>
+      <div id="alerts"></div>
+    </section>
+  </main>
+
+  <section class="grid two">
+    <section class="panel">
+      <h2>What farmers are reporting, by state (30 days)</h2>
+      <table class="table" id="prevalence"></table>
+    </section>
+    <section class="panel">
+      <h2>Latest reports</h2>
+      <table class="table" id="recent"></table>
+    </section>
+  </section>
+
+  <section class="panel rules">
+    <h2>How alerts are raised</h2>
+    <div id="rules"></div>
+  </section>
+
+  <footer>
+    Boundaries: OCHA COD-AB Nigeria (HDX, CC BY-IGO). Reports carry no photo, no name and no
+    GPS — only the problem, how sure the app was, the date and the farmer's LGA.
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

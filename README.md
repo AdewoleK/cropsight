@@ -1,5 +1,7 @@
 # CropSight
 
+<img src="assets/branding/cropsight-lockup.png" alt="CropSight logo: a leaf inside scan brackets" width="480">
+
 **Offline crop-disease diagnosis that runs entirely on a phone — no internet, no cloud, no data leaving the device.**
 
 A smallholder farmer photographs a diseased leaf. CropSight names the likely
@@ -36,9 +38,11 @@ Two updates since then:
   they see, and the small on-device embedder (the part verified on that
   3.7GB phone) matches it against the 116-entry field guide. The app picks
   Photo or Lite automatically from the phone's RAM.
-- **iOS photo diagnosis doesn't work with the current MediaPipe engine.** Its
-  iOS build lacks the vision calculator; see `ios/SETUP.md`. Fixing it means
-  moving iOS to the LiteRT-LM engine and a `.litertlm` model.
+- **iOS photo diagnosis moved to the LiteRT-LM engine** (a `.litertlm`
+  build of the same model, on the GPU), since MediaPipe's iOS build has no
+  vision support. On the Simulator the photo pass completes, then the
+  Simulator's emulated GPU hangs partway through the answer; it still needs a
+  run on a real 6GB+ iPhone. See `ios/SETUP.md`.
 
 ---
 

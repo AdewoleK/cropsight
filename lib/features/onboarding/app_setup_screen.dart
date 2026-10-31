@@ -99,7 +99,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(flex: 3),
-              const Center(child: SproutMark(size: 78)),
+              const Center(child: CropSightMark(size: 78)),
               const SizedBox(height: 20),
               Text('CropSight',
                   textAlign: TextAlign.center,
