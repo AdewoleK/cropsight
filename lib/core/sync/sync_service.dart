@@ -8,8 +8,9 @@ import 'sync_store.dart';
 import 'sync_target.dart';
 
 /// Orchestrates opportunistic sync: queue locally, flush whenever
-/// connectivity appears. Disabled (fully local) unless a `SYNC_ENDPOINT` is
-/// configured at build time.
+/// connectivity appears. Sends to the live Plant Health Watch server unless
+/// another `SYNC_ENDPOINT` is given at build time (an empty one turns sync
+/// off). Nothing is sent unless the farmer turns on reporting.
 class SyncService {
   SyncService._();
   static final SyncService instance = SyncService._();
@@ -29,7 +30,8 @@ class SyncService {
     _started = true;
     _settings = settings;
 
-    const endpoint = String.fromEnvironment('SYNC_ENDPOINT');
+    const endpoint = String.fromEnvironment('SYNC_ENDPOINT',
+        defaultValue: 'https://cropsight-watch.onrender.com/api/reports');
     if (endpoint.isNotEmpty) {
       _target = HttpSyncTarget(Uri.parse(endpoint));
     }
