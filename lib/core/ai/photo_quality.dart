@@ -1,15 +1,27 @@
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 
+import '../../l10n/l10n.dart';
+
 /// A problem with a photo that makes a diagnosis unreliable.
 enum PhotoIssue {
-  tooDark('Too dark', 'Move into daylight or open shade.'),
-  tooBright('Washed out', 'Avoid direct glare — shade the leaf with your body.'),
-  blurry('Blurry', 'Hold the phone still and tap the leaf to focus.');
+  tooDark,
+  tooBright,
+  blurry;
 
-  const PhotoIssue(this.title, this.fix);
-  final String title;
-  final String fix;
+  /// What's wrong, in the app language.
+  String get title => switch (this) {
+        tooDark => tr('Too dark'),
+        tooBright => tr('Washed out'),
+        blurry => tr('Blurry'),
+      };
+
+  /// How to fix it, in the app language.
+  String get fix => switch (this) {
+        tooDark => tr('Move into daylight or open shade.'),
+        tooBright => tr('Avoid direct glare — shade the leaf with your body.'),
+        blurry => tr('Hold the phone still and tap the leaf to focus.'),
+      };
 }
 
 /// Cheap, fully offline checks run on a photo before the (slow) model sees

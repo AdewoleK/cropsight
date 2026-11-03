@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../l10n/l10n.dart';
+
 /// A to-do with a due date ("re-check the maize", "spray again"), optionally
 /// tied to a field.
 class Reminder {
@@ -61,14 +63,16 @@ class ReminderService extends ChangeNotifier {
   @visibleForTesting
   bool askForPermission = true;
 
-  static const _details = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'field_reminders',
-      'Field reminders',
-      channelDescription: 'Reminders to re-check or treat a field',
-    ),
-    iOS: DarwinNotificationDetails(),
-  );
+  /// The channel id stays fixed; its name and description (shown in the
+  /// phone's notification settings) follow the app language.
+  static NotificationDetails get _details => NotificationDetails(
+        android: AndroidNotificationDetails(
+          'field_reminders',
+          tr('Field reminders'),
+          channelDescription: tr('Reminders to re-check or treat a field'),
+        ),
+        iOS: const DarwinNotificationDetails(),
+      );
 
   /// Open reminders, soonest first.
   List<Reminder> get open =>

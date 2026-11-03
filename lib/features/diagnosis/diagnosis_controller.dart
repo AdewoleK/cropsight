@@ -9,6 +9,7 @@ import '../../core/rag/rag_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/sync/diagnosis_result.dart';
 import '../../core/sync/sync_service.dart';
+import '../../l10n/l10n.dart';
 import 'result_actions.dart';
 import 'structured_diagnosis.dart';
 
@@ -226,21 +227,29 @@ SOURCES: <reference card name(s) you used, comma-separated>
     if (s == null) {
       share.writeln(answer.trim());
     } else {
-      if (s.crop != null) share.writeln('Crop: ${s.crop}');
-      if (s.problem != null) share.writeln('Likely problem: ${s.problem}');
+      if (s.crop != null) share.writeln(tr('Crop: {crop}', {'crop': s.crop}));
+      if (s.problem != null) {
+        share.writeln(tr('Likely problem: {problem}', {'problem': s.problem}));
+      }
       if (s.confidenceLevel != null) {
-        share.writeln('Confidence: ${s.confidenceLevel}'
-            '${s.confidenceReason == null ? '' : ' — ${s.confidenceReason}'}');
+        share.writeln(s.confidenceReason == null
+            ? tr('Confidence: {level}', {'level': s.confidenceLevel})
+            : tr('Confidence: {level} — {reason}',
+                {'level': s.confidenceLevel, 'reason': s.confidenceReason}));
       }
       if (s.steps.isNotEmpty) {
-        share.writeln('What to do:');
+        share.writeln(tr('What to do:'));
         for (var i = 0; i < s.steps.length; i++) {
           share.writeln('${i + 1}. ${s.steps[i]}');
         }
       }
     }
     if (sources.isNotEmpty) {
-      share.writeln('Field guide: ${sources.map((r) => r.card.label).join('; ')}');
+      share.writeln(tr('Field guide: {cards}', {
+        'cards': sources
+            .map((r) => '${tr(r.card.crop)}: ${tr(r.card.title)}')
+            .join('; ')
+      }));
     }
     share.write('\n$shareFooter');
     return ResultSummary(
@@ -257,15 +266,15 @@ SOURCES: <reference card name(s) you used, comma-separated>
   String get statusLabel {
     switch (status) {
       case DiagnosisStatus.looking:
-        return 'Looking at the photo…';
+        return tr('Looking at the photo…');
       case DiagnosisStatus.retrieving:
-        return 'Checking the field guide…';
+        return tr('Checking the field guide…');
       case DiagnosisStatus.answering:
-        return 'Writing the diagnosis…';
+        return tr('Writing the diagnosis…');
       case DiagnosisStatus.done:
-        return 'Diagnosis';
+        return tr('Diagnosis');
       case DiagnosisStatus.error:
-        return 'Error';
+        return tr('Error');
       case DiagnosisStatus.idle:
         return '';
     }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/ai/gemma_service.dart';
 import '../../core/rag/embedding_service.dart';
 import '../../core/rag/rag_service.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
 
@@ -30,10 +31,10 @@ class AppSetupScreen extends StatefulWidget {
 class _AppSetupScreenState extends State<AppSetupScreen> {
   List<String> get _steps => [
         widget.lite
-            ? 'Photo AI skipped — Lite mode for this phone'
-            : 'Loading on-device model',
-        'Loading knowledge embedder',
-        'Indexing the field guide',
+            ? context.tr('Photo AI skipped — Lite mode for this phone')
+            : context.tr('Loading on-device model'),
+        context.tr('Loading knowledge embedder'),
+        context.tr('Indexing the field guide'),
       ];
 
   int _stepIndex = 0;
@@ -106,7 +107,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
                   style: AppTheme.stencil(size: 30, color: p.ink)),
               const SizedBox(height: 10),
               Text(
-                'One-time setup, fully on-device — no signal needed\nafter this.',
+                context.tr('One-time setup, fully on-device — no signal needed\nafter this.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, height: 1.5, color: p.inkSoft),
               ),
@@ -236,7 +237,7 @@ class _ErrorPanel extends StatelessWidget {
         FilledButton.icon(
           onPressed: onRetry,
           icon: const Icon(Icons.refresh, size: 18),
-          label: const Text('Retry'),
+          label: Text(context.tr('Retry')),
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/fields/field_store.dart';
 import '../../core/reminders/reminder_service.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
 import 'field_sheets.dart';
@@ -17,11 +18,11 @@ class FieldDetailScreen extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete "${field.name}"?'),
-        content: const Text('Its photos and reminders are deleted from this phone.'),
+        title: Text(context.tr('Delete "{name}"?', {'name': field.name})),
+        content: Text(context.tr('Its photos and reminders are deleted from this phone.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.tr('Cancel'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(context.tr('Delete'))),
         ],
       ),
     );
@@ -49,7 +50,7 @@ class FieldDetailScreen extends StatelessWidget {
             title: Text(field.name, style: AppTheme.stencil(size: 19, color: p.ink)),
             actions: [
               IconButton(
-                tooltip: 'Delete field',
+                tooltip: context.tr('Delete field'),
                 icon: const Icon(Icons.delete_outline),
                 onPressed: () => _confirmDelete(context, field),
               ),
@@ -59,39 +60,38 @@ class FieldDetailScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
             children: [
-              Wrap(spacing: 8, children: [StampTag(label: field.crop, filled: true)]),
+              Wrap(spacing: 8, children: [StampTag(label: context.tr(field.crop), filled: true)]),
               if (photos.length >= 2) ...[
                 const SizedBox(height: 8),
-                const SectionLabel('Then and now'),
+                SectionLabel(context.tr('Then and now')),
                 Row(
                   children: [
-                    Expanded(child: _Snapshot(entry: photos.first, label: 'First')),
+                    Expanded(child: _Snapshot(entry: photos.first, label: context.tr('First'))),
                     const SizedBox(width: 10),
-                    Expanded(child: _Snapshot(entry: photos.last, label: 'Latest')),
+                    Expanded(child: _Snapshot(entry: photos.last, label: context.tr('Latest'))),
                   ],
                 ),
               ],
               const SizedBox(height: 8),
-              const SectionLabel('To do'),
+              SectionLabel(context.tr('To do')),
               if (reminders.isEmpty)
-                Text('No reminders.', style: TextStyle(color: p.husk, fontSize: 13))
+                Text(context.tr('No reminders.'), style: TextStyle(color: p.husk, fontSize: 13))
               else
                 for (final r in reminders) ReminderRow(reminder: r),
               TextButton.icon(
                 onPressed: () => showAddReminderSheet(
                   context,
                   fieldId: fieldId,
-                  initialTitle: 'Check ${field.name}',
+                  initialTitle: context.tr('Check {name}', {'name': field.name}),
                 ),
                 icon: const Icon(Icons.alarm_add_outlined, size: 18),
-                label: const Text('Add a reminder'),
+                label: Text(context.tr('Add a reminder')),
               ),
               const SizedBox(height: 8),
-              const SectionLabel('Checks'),
+              SectionLabel(context.tr('Checks')),
               if (entries.isEmpty)
                 Text(
-                  'No checks yet. Diagnose a leaf from this field, then tap '
-                  '"Save to field".',
+                  context.tr('No checks yet. Diagnose a leaf from this field, then tap "Save to field".'),
                   style: TextStyle(color: p.husk, fontSize: 13, height: 1.4),
                 )
               else
@@ -127,7 +127,7 @@ class _Snapshot extends StatelessWidget {
         Text('${label.toUpperCase()} · ${formatDay(entry.timestamp)}',
             style: Theme.of(context).textTheme.labelMedium),
         if (entry.problem != null)
-          Text(entry.problem!,
+          Text(context.tr(entry.problem!),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: p.ink)),
@@ -166,7 +166,7 @@ class _EntryRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(entry.problem ?? 'No clear diagnosis',
+                Text(entry.problem == null ? context.tr('No clear diagnosis') : context.tr(entry.problem!),
                     style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(formatDay(entry.timestamp),
@@ -175,10 +175,19 @@ class _EntryRow extends StatelessWidget {
             ),
           ),
           if (entry.confidence != null)
-            Text(entry.confidence!.toUpperCase(),
+            Text(_confidenceWord(context, entry.confidence!).toUpperCase(),
                 style: AppTheme.stencil(size: 14, color: p.confidence(entry.confidence!))),
         ],
       ),
     );
   }
 }
+
+/// The stored confidence level ('low' / 'medium' / 'high') in the app
+/// language. Unknown values are shown as stored.
+String _confidenceWord(BuildContext context, String level) => switch (level) {
+      'high' => context.tr('High'),
+      'medium' => context.tr('Medium'),
+      'low' => context.tr('Low'),
+      _ => level,
+    };

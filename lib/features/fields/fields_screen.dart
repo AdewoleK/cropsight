@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/fields/field_store.dart';
 import '../../core/reminders/reminder_service.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
 import '../settings/settings_screen.dart';
@@ -18,7 +19,7 @@ class FieldsScreen extends StatelessWidget {
     final p = context.palette;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Fields', style: AppTheme.stencil(size: 19, color: p.ink)),
+        title: Text(context.tr('Fields'), style: AppTheme.stencil(size: 19, color: p.ink)),
         actions: const [SettingsButton(), SizedBox(width: 8)],
       ),
       body: ListenableBuilder(
@@ -30,11 +31,11 @@ class FieldsScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
             children: [
               if (reminders.isNotEmpty) ...[
-                const SectionLabel('To do'),
+                SectionLabel(context.tr('To do')),
                 for (final r in reminders) ReminderRow(reminder: r),
                 const SizedBox(height: 16),
               ],
-              const SectionLabel('Your fields'),
+              SectionLabel(context.tr('Your fields')),
               if (fields.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 28),
@@ -43,8 +44,7 @@ class FieldsScreen extends StatelessWidget {
                       Icon(Icons.grass_outlined, size: 32, color: p.husk),
                       const SizedBox(height: 10),
                       Text(
-                        'Add a field to track it through the season. After a '
-                        'diagnosis, tap "Save to field" to keep the photo here.',
+                        context.tr('Add a field to track it through the season. After a diagnosis, tap "Save to field" to keep the photo here.'),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: p.husk, fontSize: 13, height: 1.4),
                       ),
@@ -57,13 +57,13 @@ class FieldsScreen extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () => showAddFieldDialog(context),
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add field'),
+                label: Text(context.tr('Add field')),
               ),
               const SizedBox(height: 8),
               TextButton.icon(
                 onPressed: () => showAddReminderSheet(context),
                 icon: const Icon(Icons.alarm_add_outlined, size: 18),
-                label: const Text('Add a reminder'),
+                label: Text(context.tr('Add a reminder')),
               ),
             ],
           );
@@ -117,14 +117,22 @@ class _FieldTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     latest == null
-                        ? '${field.crop} · no checks yet'
-                        : '${field.crop} · $checks check${checks == 1 ? '' : 's'} · '
-                            'last ${formatDay(latest.timestamp)}',
+                        ? context.tr('{crop} · no checks yet', {'crop': context.tr(field.crop)})
+                        : checks == 1
+                            ? context.tr('{crop} · 1 check · last {day}', {
+                                'crop': context.tr(field.crop),
+                                'day': formatDay(latest.timestamp),
+                              })
+                            : context.tr('{crop} · {n} checks · last {day}', {
+                                'crop': context.tr(field.crop),
+                                'n': checks,
+                                'day': formatDay(latest.timestamp),
+                              }),
                     style: TextStyle(fontSize: 12, color: p.inkSoft),
                   ),
                   if (latest?.problem != null) ...[
                     const SizedBox(height: 2),
-                    Text(latest!.problem!,
+                    Text(context.tr(latest!.problem!),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -174,7 +182,7 @@ class ReminderRow extends StatelessWidget {
                   [
                     if (field != null) field.name,
                     reminder.isOverdue
-                        ? 'overdue since ${formatDay(reminder.due)}'
+                        ? context.tr('overdue since {day}', {'day': formatDay(reminder.due)})
                         : formatDay(reminder.due),
                   ].join(' · '),
                   style: TextStyle(
@@ -191,7 +199,7 @@ class ReminderRow extends StatelessWidget {
   }
 }
 
-/// "Today", "Tomorrow", "Yesterday", else e.g. "12 Oct".
+/// "today", "tomorrow", "yesterday" (in the app language), else e.g. "12 Oct".
 String formatDay(DateTime t) {
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -201,8 +209,8 @@ String formatDay(DateTime t) {
   final today = DateTime(now.year, now.month, now.day);
   final day = DateTime(t.year, t.month, t.day);
   final diff = day.difference(today).inDays;
-  if (diff == 0) return 'today';
-  if (diff == 1) return 'tomorrow';
-  if (diff == -1) return 'yesterday';
+  if (diff == 0) return tr('today');
+  if (diff == 1) return tr('tomorrow');
+  if (diff == -1) return tr('yesterday');
   return '${t.day} ${months[t.month - 1]}${t.year == now.year ? '' : ' ${t.year}'}';
 }

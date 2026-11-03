@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/rag/local_vector_index.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/widgets.dart';
 import '../library/card_detail_screen.dart';
 import 'structured_diagnosis.dart';
@@ -46,25 +47,25 @@ class DiagnosisResultView extends StatelessWidget {
           ConfidenceWord(level: s.confidenceLevel!, reason: s.confidenceReason),
         ],
         if (s.steps.isNotEmpty) ...[
-          const SectionLabel('What to do now'),
+          SectionLabel(context.tr('What to do now')),
           const SizedBox(height: 4),
           StepTimeline(steps: s.steps),
         ],
         // Safety for the best-matching card's treatments, so it's on screen
         // before anyone reaches for a sprayer.
         if (sources.isNotEmpty && sources.first.card.safety != null) ...[
-          SafetyNote(title: 'Before you spray', text: sources.first.card.safety!),
+          SafetyNote(title: context.tr('Before you spray'), text: sources.first.card.safety!),
           const SizedBox(height: 14),
         ],
         if (sources.isNotEmpty) ...[
-          const SectionLabel('Sources — tap to read more'),
+          SectionLabel(context.tr('Sources — tap to read more')),
           for (final source in sources)
             InkWell(
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => CardDetailScreen(card: source.card),
               )),
               child: LedgerRow(
-                label: source.card.label,
+                label: '${context.tr(source.card.crop)}: ${context.tr(source.card.title)}',
                 value: '${(source.score * 100).round()}%',
               ),
             ),

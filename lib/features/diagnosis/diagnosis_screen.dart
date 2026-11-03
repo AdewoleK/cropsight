@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/ai/photo_quality.dart';
 import '../../core/settings/app_settings.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
 import '../settings/settings_screen.dart';
@@ -94,7 +95,7 @@ class _DiagnosisView extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: controller.reset,
                         icon: const Icon(Icons.replay, size: 18),
-                        label: const Text('Retake'),
+                        label: Text(context.tr('Retake')),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -103,8 +104,8 @@ class _DiagnosisView extends StatelessWidget {
                         onPressed: controller.run,
                         icon: const Icon(Icons.center_focus_strong, size: 18),
                         label: Text(controller.photoIssues?.isNotEmpty == true
-                            ? 'Use anyway'
-                            : 'Diagnose'),
+                            ? context.tr('Use anyway')
+                            : context.tr('Diagnose')),
                       ),
                     ),
                   ],
@@ -113,7 +114,7 @@ class _DiagnosisView extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: controller.reset,
                   icon: const Icon(Icons.add_a_photo_outlined, size: 18),
-                  label: const Text('New diagnosis'),
+                  label: Text(context.tr('New diagnosis')),
                 )
               else
                 Row(
@@ -123,7 +124,7 @@ class _DiagnosisView extends StatelessWidget {
                         onPressed:
                             busy ? null : () => _pick(context, ImageSource.gallery),
                         icon: const Icon(Icons.photo_library_outlined, size: 18),
-                        label: const Text('Gallery'),
+                        label: Text(context.tr('Gallery')),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -132,7 +133,7 @@ class _DiagnosisView extends StatelessWidget {
                         onPressed:
                             busy ? null : () => _pick(context, ImageSource.camera),
                         icon: const Icon(Icons.center_focus_strong, size: 18),
-                        label: const Text('Scan leaf'),
+                        label: Text(context.tr('Scan leaf')),
                       ),
                     ),
                   ],
@@ -178,7 +179,7 @@ class _PhotoCheck extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('This photo may give a poor answer',
+          Text(context.tr('This photo may give a poor answer'),
               style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 6),
           for (final issue in found)
@@ -218,10 +219,10 @@ class _ViewfinderHint extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('AIM AT ONE LEAF',
+            Text(context.tr('AIM AT ONE LEAF'),
                 style: AppTheme.stencil(size: 18, color: p.ink)),
             const SizedBox(height: 6),
-            Text('Fill the brackets. Natural light works best.',
+            Text(context.tr('Fill the brackets. Natural light works best.'),
                 style: TextStyle(fontSize: 12, color: p.inkSoft)),
           ],
         ),
@@ -232,7 +233,7 @@ class _ViewfinderHint extends StatelessWidget {
 
 /// Maps the diagnosis pipeline onto the three-stage Look / Match / Write
 /// status track shown while a diagnosis is running.
-List<(String, TrackState)> _stagesFor(DiagnosisStatus status) {
+List<(String, TrackState)> _stagesFor(BuildContext context, DiagnosisStatus status) {
   TrackState stateOf(int stage, int current) => stage < current
       ? TrackState.done
       : stage == current
@@ -245,9 +246,9 @@ List<(String, TrackState)> _stagesFor(DiagnosisStatus status) {
     _ => 3,
   };
   return [
-    ('Look', stateOf(0, current)),
-    ('Match', stateOf(1, current)),
-    ('Write', stateOf(2, current)),
+    (context.tr('Look'), stateOf(0, current)),
+    (context.tr('Match'), stateOf(1, current)),
+    (context.tr('Write'), stateOf(2, current)),
   ];
 }
 
@@ -271,7 +272,7 @@ class _ResultPanel extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: p.brick.withValues(alpha: 0.4)),
         ),
-        child: Text('Something went wrong:\n${controller.error}',
+        child: Text(context.tr('Something went wrong:\n{error}', {'error': controller.error}),
             style: TextStyle(color: p.brick, fontSize: 13)),
       );
     }
@@ -290,7 +291,7 @@ class _ResultPanel extends StatelessWidget {
             Text(controller.statusLabel,
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
-            StatusTrack(stages: _stagesFor(controller.status)),
+            StatusTrack(stages: _stagesFor(context, controller.status)),
           ],
         ),
       );

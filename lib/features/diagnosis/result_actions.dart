@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/fields/field_store.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/speech/speech_service.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../fields/field_sheets.dart';
 
@@ -49,11 +50,12 @@ class ResultActions extends StatelessWidget {
     final speech = SpeechService.instance;
     if (speech.isSpeaking) return speech.stop();
     final messenger = ScaffoldMessenger.of(context);
+    final noVoice = context.tr('This phone has no {language} voice installed.',
+        {'language': summary.language.promptName});
     final ok = await speech.speak(summary.spokenText, summary.language);
     if (!ok) {
       messenger.showSnackBar(SnackBar(
-        content: Text('This phone has no ${summary.language.promptName} '
-            'voice installed.'),
+        content: Text(noVoice),
       ));
     }
   }
@@ -70,7 +72,7 @@ class ResultActions extends StatelessWidget {
     onSaved(field.id);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved to ${field.name}')),
+        SnackBar(content: Text(context.tr('Saved to {field}', {'field': field.name}))),
       );
     }
   }
@@ -80,12 +82,12 @@ class ResultActions extends StatelessWidget {
       context,
       fieldId: savedToFieldId,
       initialTitle: summary.problem == null
-          ? 'Re-check the crop'
-          : 'Re-check for ${summary.problem}',
+          ? context.tr('Re-check the crop')
+          : context.tr('Re-check for {problem}', {'problem': summary.problem}),
     );
     if (ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reminder set')),
+        SnackBar(content: Text(context.tr('Reminder set'))),
       );
     }
   }
@@ -116,7 +118,7 @@ class ResultActions extends StatelessWidget {
               final speaking = SpeechService.instance.isSpeaking;
               return _ActionButton(
                 icon: speaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined,
-                label: speaking ? 'Stop' : 'Listen',
+                label: speaking ? context.tr('Stop') : context.tr('Listen'),
                 onTap: () => _listen(context),
               );
             },
@@ -126,7 +128,7 @@ class ResultActions extends StatelessWidget {
         Expanded(
           child: _ActionButton(
             icon: saved ? Icons.check : Icons.grass_outlined,
-            label: saved ? 'Saved' : 'Save',
+            label: saved ? context.tr('Saved') : context.tr('Save'),
             onTap: saved ? null : () => _save(context),
           ),
         ),
@@ -134,7 +136,7 @@ class ResultActions extends StatelessWidget {
         Expanded(
           child: _ActionButton(
             icon: Icons.alarm_add_outlined,
-            label: 'Remind',
+            label: context.tr('Remind'),
             onTap: () => _remind(context),
           ),
         ),
@@ -143,7 +145,7 @@ class ResultActions extends StatelessWidget {
           child: Builder(
             builder: (context) => _ActionButton(
               icon: Icons.ios_share,
-              label: 'Share',
+              label: context.tr('Share'),
               onTap: () => _share(context),
             ),
           ),
@@ -185,7 +187,6 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-/// The disclaimer appended to every shared result.
-const String shareFooter =
-    'From CropSight — offline AI and field guide. Please confirm with your '
-    'local extension officer before spraying.';
+/// The disclaimer appended to every shared result, in the app language.
+String get shareFooter => tr(
+    'From CropSight — offline AI and field guide. Please confirm with your local extension officer before spraying.');

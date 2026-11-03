@@ -3,22 +3,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ai/device_capability.dart';
 
-/// A language the diagnosis can be written (and read aloud) in.
+/// The app's language: every screen, the AI's written answer, and the voice
+/// used to read results aloud. Nigeria's three main languages plus Pidgin
+/// and English; Hausa first, as most users are expected in the north.
 ///
 /// [promptName] is what the model is told to write in; [ttsLocales] are the
 /// voice locales tried in order when reading aloud — the phone may not have
 /// a voice for every language, so later entries are fallbacks.
 enum AnswerLanguage {
-  english('English', 'English', ['en-GB', 'en-US']),
-  french('Français', 'French', ['fr-FR', 'fr-CA']),
-  portuguese('Português', 'Portuguese', ['pt-PT', 'pt-BR']),
-  swahili('Kiswahili', 'Swahili', ['sw-KE', 'sw-TZ', 'sw']),
   hausa('Hausa', 'Hausa', ['ha-NG', 'ha']),
   yoruba('Yorùbá', 'Yoruba', ['yo-NG', 'yo']),
   igbo('Igbo', 'Igbo', ['ig-NG', 'ig']),
   pidgin('Naijá (Pidgin)', 'Nigerian Pidgin English', ['en-NG', 'en-GB', 'en-US']),
-  amharic('አማርኛ', 'Amharic', ['am-ET', 'am']),
-  zulu('isiZulu', 'Zulu', ['zu-ZA', 'zu']);
+  english('English', 'English', ['en-NG', 'en-GB', 'en-US']);
 
   const AnswerLanguage(this.nativeName, this.promptName, this.ttsLocales);
 
@@ -49,6 +46,7 @@ class AppSettings extends ChangeNotifier {
   static const _modeKey = 'diagnosis_mode';
   static const _liteReadyKey = 'lite_setup_done';
   static const _shareReportsKey = 'share_reports';
+  static const _languageChosenKey = 'language_chosen';
   static const _stateKey = 'report_state_pcode';
   static const _lgaKey = 'report_lga_pcode';
 
@@ -75,8 +73,13 @@ class AppSettings extends ChangeNotifier {
 
   set language(AnswerLanguage language) {
     _prefs.setString(_languageKey, language.name);
+    _prefs.setBool(_languageChosenKey, true);
     notifyListeners();
   }
+
+  /// Whether the farmer has picked a language yet. Until then the app opens
+  /// on the language screen, before anything else.
+  bool get languageChosen => _prefs.getBool(_languageChosenKey) ?? false;
 
   DiagnosisMode get diagnosisMode => DiagnosisMode.values.firstWhere(
         (m) => m.name == _prefs.getString(_modeKey),

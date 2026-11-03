@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/rag/knowledge_card.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/speech/speech_service.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/widgets.dart';
 
 /// One reference card in full: what it looks like, what to do, and how to
@@ -25,7 +26,7 @@ class CardDetailScreen extends StatelessWidget {
             builder: (context, _) {
               final speaking = SpeechService.instance.isSpeaking;
               return IconButton(
-                tooltip: speaking ? 'Stop reading' : 'Read aloud',
+                tooltip: speaking ? context.tr('Stop reading') : context.tr('Read aloud'),
                 icon: Icon(speaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined),
                 onPressed: () => speaking
                     ? SpeechService.instance.stop()
@@ -46,17 +47,18 @@ class CardDetailScreen extends StatelessWidget {
           Wrap(
             spacing: 8,
             children: [
-              StampTag(label: card.crop, filled: true),
-              StampTag(label: card.kind.label),
+              StampTag(label: context.tr(card.crop), filled: true),
+              StampTag(label: context.tr(card.kind.label)),
             ],
           ),
           const SizedBox(height: 14),
-          Text(card.title, style: text.headlineSmall),
+          Text(context.tr(card.title), style: text.headlineSmall),
           const SizedBox(height: 8),
-          const SectionLabel('What you see'),
+          const EnglishOnlyNote(),
+          SectionLabel(context.tr('What you see')),
           Text(card.symptoms, style: text.bodyLarge),
           const SizedBox(height: 12),
-          const SectionLabel('What to do'),
+          SectionLabel(context.tr('What to do')),
           Text(card.management, style: text.bodyLarge),
           if (card.safety != null) ...[
             const SizedBox(height: 16),
@@ -64,8 +66,7 @@ class CardDetailScreen extends StatelessWidget {
           ],
           const SizedBox(height: 20),
           Text(
-            'General guidance. For serious or spreading problems, contact your '
-            'local extension officer.',
+            context.tr('General guidance. For serious or spreading problems, contact your local extension officer.'),
             style: text.bodySmall,
           ),
         ],

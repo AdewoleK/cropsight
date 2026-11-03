@@ -10,6 +10,7 @@ import '../../core/rag/rag_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/sync/diagnosis_result.dart';
 import '../../core/sync/sync_service.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
 import '../library/card_detail_screen.dart';
@@ -157,11 +158,16 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
   ResultSummary _summaryFor(RetrievedCard match) {
     final card = match.card;
     final share = StringBuffer()
-      ..writeln('Crop: ${_crop ?? card.crop}')
-      ..writeln('Possible problem: ${card.title} (${(match.score * 100).round()}% match)')
-      ..writeln('What I saw: $_query')
-      ..writeln('What to do: ${card.management}');
-    if (card.safety != null) share.writeln('Safety: ${card.safety}');
+      ..writeln(tr('Crop: {crop}', {'crop': tr(_crop ?? card.crop)}))
+      ..writeln(tr('Possible problem: {problem} ({percent}% match)', {
+        'problem': tr(card.title),
+        'percent': (match.score * 100).round(),
+      }))
+      ..writeln(tr('What I saw: {description}', {'description': _query}))
+      ..writeln(tr('What to do: {steps}', {'steps': card.management}));
+    if (card.safety != null) {
+      share.writeln(tr('Safety: {safety}', {'safety': card.safety}));
+    }
     share.write('\n$shareFooter');
     return ResultSummary(
       spokenText: '${card.title}. What to do: ${card.management}',
@@ -184,7 +190,7 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
       appBar: AppBar(
         title: Text('CropSight', style: AppTheme.stencil(size: 19, color: p.ink)),
         actions: [
-          OfflinePill(label: 'LITE MODE', dotColor: p.marigold),
+          OfflinePill(label: context.tr('LITE MODE'), dotColor: p.marigold),
           const SettingsButton(),
           const SizedBox(width: 8),
         ],
@@ -193,38 +199,38 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            Text('What do you see?', style: text.headlineSmall),
+            Text(context.tr('What do you see?'), style: text.headlineSmall),
             const SizedBox(height: 4),
             Text(
-              'Tap what matches your plant. CropSight compares it with '
-              '${KnowledgeBase.cards.length} field-guide entries — on this '
-              'phone, no internet.',
+              context.tr(
+                  'Tap what matches your plant. CropSight compares it with {n} field-guide entries — on this phone, no internet.',
+                  {'n': KnowledgeBase.cards.length}),
               style: text.bodyMedium?.copyWith(color: p.inkSoft),
             ),
-            const SectionLabel('1 · Crop'),
+            SectionLabel(context.tr('1 · Crop')),
             _ChipWrap(
-              labels: _crops,
+              labels: [for (final c in _crops) context.tr(c)],
               isSelected: (i) => _crop == _crops[i],
               onTap: (i) => setState(() => _crop = _crop == _crops[i] ? null : _crops[i]),
             ),
             const SizedBox(height: 8),
-            const SectionLabel('2 · Where on the plant'),
+            SectionLabel(context.tr('2 · Where on the plant')),
             _ChipWrap(
-              labels: [for (final p in _parts) p.$1],
+              labels: [for (final p in _parts) context.tr(p.$1)],
               isSelected: _partIdx.contains,
               onTap: (i) => setState(
                   () => _partIdx.contains(i) ? _partIdx.remove(i) : _partIdx.add(i)),
             ),
             const SizedBox(height: 8),
-            const SectionLabel('3 · What it looks like'),
+            SectionLabel(context.tr('3 · What it looks like')),
             _ChipWrap(
-              labels: [for (final s in _symptoms) s.$1],
+              labels: [for (final s in _symptoms) context.tr(s.$1)],
               isSelected: _symptomIdx.contains,
               onTap: (i) => setState(() =>
                   _symptomIdx.contains(i) ? _symptomIdx.remove(i) : _symptomIdx.add(i)),
             ),
             const SizedBox(height: 8),
-            const SectionLabel('4 · Anything else? (optional)'),
+            SectionLabel(context.tr('4 · Anything else? (optional)')),
             TextField(
               controller: _note,
               onChanged: (_) => setState(() {}),
@@ -232,7 +238,7 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
               maxLines: 3,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: 'e.g. started after heavy rain, spreading fast',
+                hintText: context.tr('e.g. started after heavy rain, spreading fast'),
                 filled: true,
                 fillColor: p.paper2,
                 border: OutlineInputBorder(
@@ -257,8 +263,8 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
                     onPressed: _pickPhoto,
                     icon: const Icon(Icons.photo_camera_outlined, size: 18),
                     label: Text(_photo == null
-                        ? 'Add a photo for your records'
-                        : 'Photo kept for your records'),
+                        ? context.tr('Add a photo for your records')
+                        : context.tr('Photo kept for your records')),
                   ),
                 ),
               ],
@@ -268,7 +274,7 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
               children: [
                 if (_matches != null) ...[
                   Expanded(
-                    child: OutlinedButton(onPressed: _reset, child: const Text('Start over')),
+                    child: OutlinedButton(onPressed: _reset, child: Text(context.tr('Start over'))),
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -282,27 +288,28 @@ class _LiteDiagnosisScreenState extends State<LiteDiagnosisScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2, color: p.onRust),
                           )
                         : const Icon(Icons.search, size: 18),
-                    label: const Text('Find matches'),
+                    label: Text(context.tr('Find matches')),
                   ),
                 ),
               ],
             ),
             if (_error != null) ...[
               const SizedBox(height: 16),
-              Text('Something went wrong:\n$_error',
+              Text(context.tr('Something went wrong:\n{error}', {'error': _error}),
                   style: TextStyle(color: p.brick, fontSize: 13)),
             ],
             if (_matches != null) ...[
               const SizedBox(height: 8),
-              const SectionLabel('Possible matches'),
+              SectionLabel(context.tr('Possible matches')),
               Text(
-                'Compare each with your plant and pick the one that fits. '
-                'Lite mode matches your description — it cannot see the photo.',
+                context.tr(
+                    'Compare each with your plant and pick the one that fits. Lite mode matches your description — it cannot see the photo.'),
                 style: text.bodySmall,
               ),
               const SizedBox(height: 8),
+              const EnglishOnlyNote(),
               if (_matches!.isEmpty)
-                Text('No matches. Try choosing fewer or different symptoms.',
+                Text(context.tr('No matches. Try choosing fewer or different symptoms.'),
                     style: TextStyle(color: p.husk))
               else
                 for (final m in _matches!)
@@ -399,8 +406,8 @@ class _MatchCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Wrap(spacing: 6, runSpacing: 6, children: [
-                    StampTag(label: card.crop, filled: true),
-                    StampTag(label: card.kind.label),
+                    StampTag(label: context.tr(card.crop), filled: true),
+                    StampTag(label: context.tr(card.kind.label)),
                   ]),
                 ),
                 Text('${(match.score * 100).round()}%',
@@ -408,17 +415,17 @@ class _MatchCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            Text(card.title, style: Theme.of(context).textTheme.titleMedium),
+            Text(context.tr(card.title), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
             Text(card.symptoms,
                 style: TextStyle(fontSize: 13, height: 1.4, color: p.ink)),
             if (chosen) ...[
-              const SectionLabel('What to do'),
+              SectionLabel(context.tr('What to do')),
               Text(card.management,
                   style: TextStyle(fontSize: 13.5, height: 1.45, color: p.ink)),
               if (card.safety != null) ...[
                 const SizedBox(height: 12),
-                SafetyNote(title: 'Before you spray', text: card.safety!),
+                SafetyNote(title: context.tr('Before you spray'), text: card.safety!),
               ],
             ],
             const SizedBox(height: 12),
@@ -428,17 +435,17 @@ class _MatchCard extends StatelessWidget {
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => CardDetailScreen(card: card),
                   )),
-                  child: const Text('Read more'),
+                  child: Text(context.tr('Read more')),
                 ),
                 const Spacer(),
                 if (!chosen)
                   FilledButton(
                     style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
                     onPressed: onChoose,
-                    child: const Text('This looks right'),
+                    child: Text(context.tr('This looks right')),
                   )
                 else
-                  Text('YOUR MATCH', style: Theme.of(context).textTheme.labelLarge),
+                  Text(context.tr('YOUR MATCH'), style: Theme.of(context).textTheme.labelLarge),
               ],
             ),
           ],

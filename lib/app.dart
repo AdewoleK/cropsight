@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 import 'core/ai/gemma_service.dart';
 import 'core/rag/rag_service.dart';
 import 'core/settings/app_settings.dart';
+import 'l10n/l10n.dart';
 import 'features/diagnosis/diagnosis_screen.dart';
 import 'features/fields/fields_screen.dart';
 import 'features/library/library_screen.dart';
 import 'features/onboarding/app_setup_screen.dart';
+import 'features/onboarding/language_screen.dart';
 import 'features/sync/sync_status_screen.dart';
 import 'theme/app_theme.dart';
 import 'theme/widgets.dart';
@@ -28,6 +30,9 @@ class CropSightApp extends StatelessWidget {
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: settings.themeMode,
+          // Above the navigator, so every route and dialog sees the language.
+          builder: (context, child) =>
+              LanguageScope(language: settings.language, child: child!),
           home: const _StartupGate(),
         ),
       ),
@@ -70,7 +75,10 @@ class _StartupGateState extends State<_StartupGate> {
 
   @override
   Widget build(BuildContext context) {
-    final lite = context.watch<AppSettings>().useLiteMode;
+    final settings = context.watch<AppSettings>();
+    final lite = settings.useLiteMode;
+    // Language comes first, so even setup is in the farmer's own language.
+    if (!settings.languageChosen) return const LanguageScreen();
     if (_installed == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),

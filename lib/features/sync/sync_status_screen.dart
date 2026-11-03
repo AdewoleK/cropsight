@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/sync/diagnosis_result.dart';
 import '../../core/sync/sync_service.dart';
 import '../../core/sync/sync_store.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
 import '../settings/settings_screen.dart';
@@ -60,10 +61,12 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Field log', style: AppTheme.stencil(size: 19, color: p.ink)),
+        title: Text(context.tr('Field log'), style: AppTheme.stencil(size: 19, color: p.ink)),
         actions: [
           OfflinePill(
-            label: pending == 0 ? 'ALL SYNCED' : '$pending UNSYNCED',
+            label: pending == 0
+                ? context.tr('ALL SYNCED')
+                : context.tr('{n} UNSYNCED', {'n': pending}),
             dotColor: pending == 0 ? p.fern : p.marigold,
           ),
           const SettingsButton(),
@@ -80,9 +83,9 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
                   Row(
                     children: [
                       Expanded(
-                          child: _StatBox(label: 'Pending', value: pending, p: p)),
+                          child: _StatBox(label: context.tr('Pending'), value: pending, p: p)),
                       const SizedBox(width: 12),
-                      Expanded(child: _StatBox(label: 'Synced', value: synced, p: p)),
+                      Expanded(child: _StatBox(label: context.tr('Synced'), value: synced, p: p)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -96,7 +99,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
                                 strokeWidth: 2, color: p.onRust),
                           )
                         : const Icon(Icons.cloud_upload_outlined, size: 18),
-                    label: const Text('Sync now'),
+                    label: Text(context.tr('Sync now')),
                   ),
                   const SizedBox(height: 8),
                   if (_results.isEmpty)
@@ -107,14 +110,14 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
                           Icon(Icons.center_focus_strong_outlined,
                               size: 32, color: p.husk),
                           const SizedBox(height: 10),
-                          Text('No diagnoses yet.',
+                          Text(context.tr('No diagnoses yet.'),
                               textAlign: TextAlign.center,
                               style: TextStyle(color: p.husk, fontSize: 13)),
                         ],
                       ),
                     )
                   else ...[
-                    const SectionLabel('Recent'),
+                    SectionLabel(context.tr('Recent')),
                     for (final result in _results) _LogRow(result: result),
                   ],
                 ],
@@ -177,7 +180,7 @@ class _LogRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(topCard?.label ?? 'Diagnosis',
+                Text(topCard?.label ?? context.tr('Diagnosis'),
                     style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(_formatTimestamp(result.timestamp),
@@ -193,7 +196,7 @@ class _LogRow extends StatelessWidget {
               border: result.synced ? null : Border.all(color: p.hairline),
             ),
             child: Text(
-              result.synced ? 'SYNCED' : 'PENDING',
+              result.synced ? context.tr('SYNCED') : context.tr('PENDING'),
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w800,

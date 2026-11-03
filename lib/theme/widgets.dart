@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
+import '../core/settings/app_settings.dart';
 import 'app_theme.dart';
 
 /// Shared vocabulary for CropSight's field-instrument identity: scan
@@ -291,7 +293,14 @@ class ConfidenceWord extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(level.toUpperCase(), style: AppTheme.stencil(size: 36, color: color)),
+        Text(
+            switch (level) {
+              'high' => context.tr('HIGH'),
+              'medium' => context.tr('MEDIUM'),
+              'low' => context.tr('LOW'),
+              _ => level.toUpperCase(),
+            },
+            style: AppTheme.stencil(size: 36, color: color)),
         if (reason != null) ...[
           const SizedBox(width: 14),
           Expanded(
@@ -465,9 +474,10 @@ class SectionLabel extends StatelessWidget {
 
 /// The small "OFFLINE READY" status stamp shown in every app bar.
 class OfflinePill extends StatelessWidget {
-  const OfflinePill({super.key, this.label = 'OFFLINE READY', this.dotColor});
+  const OfflinePill({super.key, this.label, this.dotColor});
 
-  final String label;
+  /// Defaults to "OFFLINE READY" in the app language.
+  final String? label;
   final Color? dotColor;
 
   @override
@@ -489,7 +499,7 @@ class OfflinePill extends StatelessWidget {
             decoration: BoxDecoration(color: dotColor ?? p.fern, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
-          Text(label,
+          Text(label ?? context.tr('OFFLINE READY'),
               style: TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w800,
@@ -504,10 +514,12 @@ class OfflinePill extends StatelessWidget {
 /// Safety guidance for chemical treatments — a heavy ink rule rather than a
 /// colour, since fern/marigold/brick are reserved for confidence.
 class SafetyNote extends StatelessWidget {
-  const SafetyNote({super.key, required this.text, this.title = 'Stay safe'});
+  const SafetyNote({super.key, required this.text, this.title});
 
   final String text;
-  final String title;
+
+  /// Defaults to "Stay safe" in the app language.
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -528,7 +540,8 @@ class SafetyNote extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title.toUpperCase(), style: Theme.of(context).textTheme.labelLarge),
+                Text((title ?? context.tr('Stay safe')).toUpperCase(),
+                    style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 4),
                 Text(text, style: TextStyle(fontSize: 13, height: 1.4, color: p.ink)),
               ],
@@ -547,26 +560,25 @@ class CropSightBottomNav extends StatelessWidget {
   final int index;
   final ValueChanged<int> onChanged;
 
-  static const _tabs = [
-    (Icons.center_focus_strong_outlined, 'Diagnose'),
-    (Icons.grass_outlined, 'Fields'),
-    (Icons.menu_book_outlined, 'Library'),
-    (Icons.receipt_long_outlined, 'Log'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
+    final tabs = [
+      (Icons.center_focus_strong_outlined, context.tr('Diagnose')),
+      (Icons.grass_outlined, context.tr('Fields')),
+      (Icons.menu_book_outlined, context.tr('Library')),
+      (Icons.receipt_long_outlined, context.tr('Log')),
+    ];
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         child: Row(
           children: [
-            for (var i = 0; i < _tabs.length; i++)
+            for (var i = 0; i < tabs.length; i++)
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(right: i < _tabs.length - 1 ? 6 : 0),
+                  padding: EdgeInsets.only(right: i < tabs.length - 1 ? 6 : 0),
                   child: GestureDetector(
                     onTap: () => onChanged(i),
                     child: AnimatedContainer(
@@ -579,10 +591,10 @@ class CropSightBottomNav extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(_tabs[i].$1,
+                          Icon(tabs[i].$1,
                               size: 19, color: i == index ? p.paper : p.husk),
                           const SizedBox(height: 3),
-                          Text(_tabs[i].$2,
+                          Text(tabs[i].$2,
                               style: TextStyle(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w800,
@@ -596,6 +608,42 @@ class CropSightBottomNav extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+/// Shown above field-guide text when the app isn't in English: the long
+/// descriptions haven't been translated yet, only the names.
+class EnglishOnlyNote extends StatelessWidget {
+  const EnglishOnlyNote({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (LanguageScope.of(context) == AnswerLanguage.english) {
+      return const SizedBox.shrink();
+    }
+    final p = context.palette;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: p.paper2,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: p.marigold.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.translate, size: 18, color: p.marigold),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              context.tr('Field guide details are in English for now. Ask an extension officer if you need help reading them.'),
+              style: TextStyle(fontSize: 12.5, height: 1.4, color: p.ink),
+            ),
+          ),
+        ],
       ),
     );
   }

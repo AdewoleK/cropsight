@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../theme/widgets.dart';
 import '../settings/settings_screen.dart';
 import 'card_detail_screen.dart';
+import '../../l10n/l10n.dart';
 
 /// The field guide, browsable without a photo: every reference card the
 /// diagnosis can cite, searchable and filterable by crop and kind.
@@ -33,7 +34,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
       if (_kind != null && c.kind != _kind) return false;
       if (q.isEmpty) return true;
       return c.title.toLowerCase().contains(q) ||
+          tr(c.title).toLowerCase().contains(q) ||
           c.crop.toLowerCase().contains(q) ||
+          tr(c.crop).toLowerCase().contains(q) ||
           c.symptoms.toLowerCase().contains(q);
     }).toList()
       ..sort((a, b) {
@@ -49,7 +52,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Library', style: AppTheme.stencil(size: 19, color: p.ink)),
+        title: Text(context.tr('Library'), style: AppTheme.stencil(size: 19, color: p.ink)),
         actions: const [SettingsButton(), SizedBox(width: 8)],
       ),
       body: CustomScrollView(
@@ -60,7 +63,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
                 decoration: InputDecoration(
-                  hintText: 'Search a crop, disease or symptom',
+                  hintText: context.tr('Search a crop, disease or symptom'),
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: p.paper2,
@@ -77,7 +80,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               children: [
                 for (final kind in CardKind.values)
                   _FilterChip(
-                    label: kind.label,
+                    label: context.tr(kind.label),
                     selected: _kind == kind,
                     onTap: () => setState(() => _kind = _kind == kind ? null : kind),
                   ),
@@ -89,7 +92,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               children: [
                 for (final crop in _crops)
                   _FilterChip(
-                    label: crop,
+                    label: context.tr(crop),
                     selected: _crop == crop,
                     onTap: () => setState(() => _crop = _crop == crop ? null : crop),
                   ),
@@ -100,7 +103,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
-                child: Text('Nothing matches.', style: TextStyle(color: p.husk)),
+                child: Text(context.tr('Nothing matches.'), style: TextStyle(color: p.husk)),
               ),
             )
           else
@@ -114,7 +117,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (newCrop) SectionLabel(card.crop),
+                      if (newCrop) SectionLabel(context.tr(card.crop)),
                       _CardTile(card: card),
                     ],
                   );
@@ -196,7 +199,7 @@ class _CardTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(card.title,
+                  Text(context.tr(card.title),
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 3),
                   Text(card.symptoms,
@@ -207,7 +210,7 @@ class _CardTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Text(card.kind.label.toUpperCase(),
+            Text(context.tr(card.kind.label).toUpperCase(),
                 style: TextStyle(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
