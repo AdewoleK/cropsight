@@ -1,3 +1,4 @@
+import os
 import sys
 import tempfile
 import unittest
@@ -29,11 +30,21 @@ def phone_result(farmer, days_ago=1, lga=IKARA, card="tomato_tuta_absoluta", **e
 
 
 class StoreTest(unittest.TestCase):
+    # Set TEST_DATABASE_URL to also run these against Postgres (e.g.
+    # Supabase): each test gets its own throwaway schema, dropped afterwards.
+    PG = os.environ.get("TEST_DATABASE_URL")
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.w = Surveillance(str(Path(self.tmp.name) / "t.db"))
+        if self.PG:
+            self.schema = "watch_test_" + uuid.uuid4().hex[:10]
+            self.w = Surveillance(self.PG, schema=self.schema)
+        else:
+            self.w = Surveillance(str(Path(self.tmp.name) / "t.db"))
 
     def tearDown(self):
+        if self.PG:
+            self.w.db.execute(f"DROP SCHEMA {self.schema} CASCADE")
         self.w.db.close()
         self.tmp.cleanup()
 
@@ -145,7 +156,7 @@ class StoreTest(unittest.TestCase):
         out = self.w.ingest([{**r, "cited_cards": [{"id": "tomato_late_blight", "score": 0.8}]}])
         self.assertEqual(out["updated"], 1)
         rows = self.w.db.execute("SELECT card_id FROM reports").fetchall()
-        self.assertEqual([x[0] for x in rows], ["tomato_late_blight"])
+        self.assertEqual([x["card_id"] for x in rows], ["tomato_late_blight"])
 
 
 if __name__ == "__main__":

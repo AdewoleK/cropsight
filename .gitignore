@@ -30,3 +30,8 @@ android/.gradle/
 # Surveillance server database (local data, not code)
 server/*.db
 __pycache__/
+
+# Secrets (Supabase connection string etc.)
+.env
+*.env
+server/.venv/

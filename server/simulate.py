@@ -23,6 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from surveillance.config import database_target  # noqa: E402
 from surveillance.store import Surveillance, utcnow  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
@@ -117,8 +118,8 @@ def scenarios(w):
 
 
 def main():
-    w = Surveillance(os.environ.get("DB", str(HERE / "watch.db")))
-    with w.db:
+    w = Surveillance(database_target())
+    with w.db.transaction():
         # Remove only alerts that rest entirely on demo data; alerts with any
         # real phone report keep their history and officers' notes.
         demo = [r["id"] for r in w.db.execute("SELECT * FROM alerts").fetchall()

@@ -1,4 +1,5 @@
 import json
+import urllib.error
 import os
 import sys
 import tempfile
@@ -14,7 +15,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 TMP = tempfile.TemporaryDirectory()
 os.environ["DB"] = str(Path(TMP.name) / "api.db")
+# Never use the real Supabase settings from server/.env in tests.
+for key in ("DATABASE_URL", "SUPABASE_URL", "SUPABASE_ANON_KEY"):
+    os.environ[key] = ""
 import app  # noqa: E402
+from surveillance import auth, config  # noqa: E402
 
 
 class ApiTest(unittest.TestCase):
@@ -97,6 +102,69 @@ class ApiTest(unittest.TestCase):
         conn.putheader("Content-Length", "-1")
         conn.endheaders()
         self.assertEqual(conn.getresponse().status, 400)
+
+    def test_health_and_config_are_public(self):
+        self.assertEqual(self.get("/api/health"), (200, {"ok": True}))
+        status, body = self.get("/api/config")
+        self.assertEqual((status, body["auth"]), (200, False))
+
+
+class SignInTest(ApiTest):
+    """Same server, with officer sign-in switched on and Supabase faked."""
+
+    def setUp(self):
+        self._saved = (config.AUTH_REQUIRED, auth._ask_supabase)
+        config.AUTH_REQUIRED = True
+        auth._cache.clear()
+
+        def fake(token):
+            if token == "good":
+                return "officer@example.gov.ng"
+            raise auth.AuthError("session expired, sign in again")
+        auth._ask_supabase = fake
+
+    def tearDown(self):
+        config.AUTH_REQUIRED, auth._ask_supabase = self._saved
+
+    def call(self, path, token=None, body=None):
+        req = urllib.request.Request(self.base + path, data=body and json.dumps(body).encode(),
+                                     headers={"Content-Type": "application/json",
+                                              **({"Authorization": f"Bearer {token}"} if token else {})})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read())
+
+    def get(self, path):
+        return self.call(path, token="good")
+
+    def post(self, path, body):
+        return self.call(path, token="good", body=body)
+
+    def test_dashboard_data_needs_sign_in(self):
+        for path in ("/api/overview", "/api/alerts", "/api/map", "/api/reports/recent",
+                     "/api/geo/lgas", "/api/me"):
+            self.assertEqual(self.call(path)[0], 401, path)
+            self.assertEqual(self.call(path, token="forged")[0], 401, path)
+        self.assertEqual(self.call("/api/me", token="good"), (200, {"email": "officer@example.gov.ng"}))
+
+    def test_phones_report_without_sign_in(self):
+        status, body = self.call("/api/reports", body=self.phone_batch())
+        self.assertEqual((status, body["accepted"]), (200, 1))
+
+    def test_review_needs_sign_in_and_records_officer(self):
+        for _ in range(3):
+            self.call("/api/reports", body=self.phone_batch())
+        alert = [a for a in self.get("/api/alerts")[1] if a["lga"] == "Ikara"][0]
+        url = f"/api/alerts/{alert['id']}/review"
+        self.assertEqual(self.call(url, body={"status": "dismissed", "note": "x"})[0], 401)
+        status, out = self.post(url, {"status": "confirmed", "note": "visited"})
+        self.assertEqual((status, out["reviewed_by"]), (200, "officer@example.gov.ng"))
+
+    def test_health_and_config_are_public(self):
+        self.assertEqual(self.call("/api/health"), (200, {"ok": True}))
+        self.assertEqual(self.call("/api/config")[1]["auth"], True)
 
 
 if __name__ == "__main__":

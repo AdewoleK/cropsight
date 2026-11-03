@@ -8,13 +8,50 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="auth-screen" id="auth-screen" hidden>
+    <div class="auth-card">
+      <img src="icon.svg" alt="" class="logo">
+      <h1>CropSight <span>Plant Health Watch</span></h1>
+      <p class="sub">For plant-health officers. Accounts are by invitation.</p>
+      <p class="auth-message" id="auth-message" hidden></p>
+
+      <form id="signin-form" hidden>
+        <label>Email<input type="email" id="signin-email" autocomplete="username" required></label>
+        <label>Password<input type="password" id="signin-password" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">Sign in</button>
+        <button type="button" class="link" id="show-forgot">Forgot password, or first time here?</button>
+      </form>
+
+      <form id="forgot-form" hidden>
+        <p>Enter your email and we'll send a link to set your password.</p>
+        <label>Email<input type="email" id="forgot-email" autocomplete="username" required></label>
+        <button class="primary" type="submit">Send link</button>
+        <button type="button" class="link" id="show-signin">Back to sign in</button>
+      </form>
+
+      <form id="setpw-form" hidden>
+        <p>Welcome, <strong id="setpw-email"></strong>. Choose a password for your officer account.</p>
+        <label>New password<input type="password" id="setpw-password" autocomplete="new-password" minlength="10" required></label>
+        <label>Repeat it<input type="password" id="setpw-confirm" autocomplete="new-password" required></label>
+        <button class="primary" type="submit">Save password and continue</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="app" hidden>
   <header class="top">
     <img src="icon.svg" alt="" class="logo">
     <div>
       <h1>CropSight <span>Plant Health Watch</span></h1>
       <p class="sub">Crop disease and pest reports from farmers' phones · Nigeria</p>
     </div>
-    <div class="updated" id="updated">Loading…</div>
+    <div class="updated">
+      <div id="updated">Loading…</div>
+      <div class="officer" id="officer" hidden>
+        <span id="officer-email"></span>
+        <button type="button" class="link" id="sign-out">Sign out</button>
+      </div>
+    </div>
   </header>
 
   <div class="banner" id="sim-banner" hidden>
@@ -72,6 +109,9 @@
     GPS — only the problem, how sure the app was, the date and the farmer's LGA.
   </footer>
 
+  </div>
+
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,12 +1,15 @@
 """CropSight Plant Health Watch: the server phones report to, and the
-dashboard officers review alerts on. Standard library only.
+dashboard officers sign in to and review alerts on.
 
     python3 app.py                       # http://localhost:8787
-    PORT=9000 DB=watch.db python3 app.py
     ALERT_WEBHOOK=https://... python3 app.py   # POST each new alert there
 
-Phones send to POST /api/reports (build the app with
---dart-define=SYNC_ENDPOINT=http://<this machine>:8787/api/reports).
+Storage and sign-in come from the environment or server/.env:
+DATABASE_URL (Supabase Postgres; without it, a local SQLite file) and
+SUPABASE_URL + SUPABASE_ANON_KEY (officer sign-in; without them the
+dashboard is open, for local development).
+
+Phones send to POST /api/reports, which needs no sign-in.
 """
 
 import json
@@ -17,14 +20,18 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from surveillance import auth, config
 from surveillance.store import Surveillance
 
 HERE = Path(__file__).resolve().parent
 DASHBOARD = HERE / "dashboard"
 MAX_BODY = 1_000_000
 
-watch = Surveillance(os.environ.get("DB", str(HERE / "watch.db")),
-                     webhook=os.environ.get("ALERT_WEBHOOK"))
+watch = Surveillance(config.database_target(), webhook=os.environ.get("ALERT_WEBHOOK"))
+
+# Reachable without signing in: phones uploading, the health check Render
+# polls, the settings the sign-in page needs, and the dashboard's own files.
+PUBLIC_API = {("POST", "/api/reports"), ("GET", "/api/health"), ("GET", "/api/config")}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -64,6 +71,14 @@ class Handler(BaseHTTPRequestHandler):
         # A bug must answer 500, not drop the connection: phones treat a
         # dropped connection as "try again", forever.
         try:
+            path = urlparse(self.path).path
+            self.officer = None
+            if (config.AUTH_REQUIRED and path.startswith("/api/")
+                    and (self.command, path) not in PUBLIC_API):
+                try:
+                    self.officer = auth.officer_for(self.headers.get("Authorization"))
+                except auth.AuthError as e:
+                    return self._send(401, {"error": str(e)})
             with watch.lock:
                 handler()
         except Exception as e:  # noqa: BLE001
@@ -78,6 +93,14 @@ class Handler(BaseHTTPRequestHandler):
         q = {k: v[0] for k, v in parse_qs(url.query).items()}
         path = url.path
         try:
+            if path == "/api/health":
+                return self._send(200, {"ok": watch.db.ping()})
+            if path == "/api/config":
+                return self._send(200, {"auth": config.AUTH_REQUIRED,
+                                        "supabase_url": config.SUPABASE_URL,
+                                        "supabase_anon_key": config.SUPABASE_ANON_KEY})
+            if path == "/api/me":
+                return self._send(200, {"email": self.officer})
             if path == "/api/overview":
                 return self._send(200, watch.overview(int(q.get("days", 30))))
             if path == "/api/alerts":
@@ -106,7 +129,7 @@ class Handler(BaseHTTPRequestHandler):
             m = re.fullmatch(r"/api/alerts/(\d+)/review", path)
             if m:
                 return self._send(200, watch.review(int(m.group(1)), body.get("status"),
-                                                    body.get("note", "")))
+                                                    body.get("note", ""), officer=self.officer))
             return self._send(404, {"error": "not found"})
         except KeyError:
             return self._send(404, {"error": "no such alert"})

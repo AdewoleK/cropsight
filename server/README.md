@@ -1,24 +1,42 @@
 # CropSight Plant Health Watch
 
 The server CropSight phones report to, and the dashboard plant-health officers
-use to review outbreak alerts. Python standard library only — no packages to
-install.
+sign in to and review outbreak alerts on.
+
+**Live:** https://cropsight-watch.onrender.com (Render, Frankfurt), storing data
+in Supabase Postgres (London) in a private `watch` schema with row-level
+security on. Officer accounts are Supabase Auth users, invite-only.
+
+## Run locally
 
 ```bash
 cd server
-python3 app.py                  # dashboard at http://localhost:8787
-python3 simulate.py             # load labelled demo data (optional)
-python3 -m unittest discover -s tests
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python app.py               # http://localhost:8787
+.venv/bin/python simulate.py          # load labelled demo data (optional)
+.venv/bin/python -m unittest discover -s tests
 ```
 
-Point a phone build at it:
+Settings come from environment variables, or `server/.env` locally (never
+committed):
 
-```bash
-flutter run --dart-define=SYNC_ENDPOINT=http://<this-machine>:8787/api/reports
-```
+| Variable | What it does |
+|---|---|
+| `DATABASE_URL` | Supabase Postgres (Session pooler URI). Unset: a local SQLite file. |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Officer sign-in. Unset: the dashboard is open (local development only). |
+| `ALERT_WEBHOOK` | Optional URL each new alert is POSTed to (e.g. an SMS gateway). |
 
-On the phone: Settings → Disease reporting → turn on "Share my results" and
-pick the state and LGA. Nothing is sent until both are done.
+`TEST_DATABASE_URL=… python -m unittest tests.test_store` runs the storage
+tests against Postgres, each in a throwaway schema.
+
+## Officers
+
+Invite officers in Supabase (Authentication → Users → Send invitation). The
+email links to the dashboard, where they set a password. "Forgot password"
+on the sign-in screen sends a reset link. Reviews record who made them.
+
+Phones need no sign-in to report (`POST /api/reports`); everything else under
+`/api/` except `/api/health` and `/api/config` requires an officer session.
 
 ## What a phone sends
 
@@ -57,9 +75,10 @@ New alerts can be pushed to `ALERT_WEBHOOK` (e.g. an SMS or email gateway).
 
 ## Before real use
 
-This is a pilot. For production it needs, at minimum: HTTPS, sign-in for
-officers (the dashboard and review endpoint are open), rate limiting on
-`/api/reports`, a managed database with backups, and a data-protection review
+This is a pilot. HTTPS, officer sign-in and a managed database are in place.
+Still needed: rate limiting on `/api/reports`, a paid Supabase plan (free
+projects pause after a week idle and have limited backups), a paid Render
+instance (free ones sleep after 15 minutes idle), and a data-protection review
 under the Nigeria Data Protection Act 2023.
 
 Reports are not authenticated. "Distinct farmers" trusts the random ID each

@@ -1,0 +1,2 @@
+# Postgres driver for Supabase. Everything else is the Python standard library.
+psycopg[binary]==3.3.7

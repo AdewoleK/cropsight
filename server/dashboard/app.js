@@ -1,10 +1,15 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const api = (path, opts) => fetch(path, opts).then((r) => {
+async function api(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: { ...(opts.headers || {}), ...(await Auth.headers()) } });
+  if (r.status === 401) {
+    Auth.signedOut();
+    throw new Error("signed out");
+  }
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
-});
+}
 
 const KIND = {
   new_in_area: "New in area",
@@ -117,7 +122,8 @@ function alertCard(a) {
   const neighbours = a.neighbours.length
     ? `<div class="chips">Also reported next door: ${a.neighbours.map((n) => `${esc(n.name)} (${n.farmers})`).join(", ")}</div>`
     : "";
-  const note = a.review_note ? `<div class="review-note">Officer's note: ${esc(a.review_note)}</div>` : "";
+  const by = a.reviewed_by ? ` (${esc(a.reviewed_by)})` : "";
+  const note = a.review_note ? `<div class="review-note">Officer's note${by}: ${esc(a.review_note)}</div>` : "";
   const actions = a.status === "new"
     ? `<div class="actions">
          <button class="primary" data-review="confirmed" data-id="${a.id}">Confirm</button>
@@ -190,7 +196,7 @@ function renderRules(r) {
 // ------------------------------------------------------------------ loop
 
 async function refresh() {
-  if (reviewing) return;
+  if (reviewing || !Auth.active()) return;
   try {
     const [overview, alerts, mapLayer, recent] = await Promise.all([
       api("/api/overview?days=30"), api("/api/alerts?status=all"), api("/api/map"),
@@ -270,5 +276,10 @@ $("alerts").addEventListener("submit", async (e) => {
 });
 $("show-all").addEventListener("change", renderAlerts);
 
-drawMap().then(refresh);
-setInterval(refresh, 10000);
+let started = false;
+Auth.start(() => {
+  if (started) return refresh();
+  started = true;
+  drawMap().then(refresh);
+  setInterval(refresh, 10000);
+});

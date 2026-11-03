@@ -1,55 +1,18 @@
-"""SQLite storage plus the operations the API exposes: ingest reports, run
-detection into reviewable alerts, and the summaries the dashboard shows."""
+"""Storage (Postgres on Supabase, or SQLite locally) plus the operations the
+API exposes: ingest reports, run detection into reviewable alerts, and the
+summaries the dashboard shows."""
 
 import json
-import sqlite3
 import threading
 import urllib.request
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from .db import Database
 from .detection import RULES, Report, Signal, detect, explain
 
 DATA = Path(__file__).resolve().parent.parent / "data"
-
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS reports (
-  farmer TEXT NOT NULL,
-  result_id TEXT NOT NULL,
-  reported_at TEXT NOT NULL,
-  received_at TEXT NOT NULL,
-  source TEXT NOT NULL,
-  confidence TEXT,
-  unclear INTEGER NOT NULL,
-  state_pcode TEXT NOT NULL,
-  lga_pcode TEXT NOT NULL,
-  card_id TEXT,
-  score REAL,
-  simulated INTEGER NOT NULL DEFAULT 0,
-  PRIMARY KEY (farmer, result_id)
-);
-CREATE INDEX IF NOT EXISTS reports_time ON reports (reported_at);
-CREATE TABLE IF NOT EXISTS alerts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  kind TEXT NOT NULL,
-  lga_pcode TEXT NOT NULL,
-  card_id TEXT,
-  severity TEXT NOT NULL,
-  farmers INTEGER NOT NULL,
-  reports INTEGER NOT NULL,
-  baseline_farmers INTEGER NOT NULL,
-  neighbours TEXT NOT NULL,
-  first_seen TEXT NOT NULL,
-  last_seen TEXT NOT NULL,
-  raised_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'new',
-  review_note TEXT,
-  reviewed_at TEXT,
-  farmers_at_review INTEGER
-);
-"""
 
 OPEN = ("new", "confirmed")
 
@@ -64,10 +27,9 @@ def parse_time(text):
 
 
 class Surveillance:
-    def __init__(self, db_path, webhook=None):
-        self.db = sqlite3.connect(db_path, check_same_thread=False)
-        self.db.row_factory = sqlite3.Row
-        self.db.executescript(SCHEMA)
+    def __init__(self, target, webhook=None, schema="watch"):
+        """`target` is a SQLite file path or a postgres:// URL."""
+        self.db = Database(target, schema=schema)
         # One connection shared by the HTTP server's threads, so every use of
         # it (the API wraps each request in this lock) must be serialised.
         # Re-entrant because ingest() calls run_detection() while holding it.
@@ -123,7 +85,7 @@ class Surveillance:
         so phones can safely retry after a dropped connection."""
         accepted, duplicates, updated, rejected = 0, 0, 0, []
         now = utcnow().isoformat()
-        with self.lock, self.db:
+        with self.lock, self.db.transaction():
             for r in results:
                 problem = self._validate(r)
                 if problem:
@@ -143,7 +105,8 @@ class Surveillance:
                 if old is None:
                     self.db.execute("INSERT INTO reports VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", row)
                     accepted += 1
-                elif tuple(old) != (row[4], row[5], row[6], row[8], row[9]):
+                elif (old["source"], old["confidence"], old["unclear"], old["lga_pcode"],
+                      old["card_id"]) != (row[4], row[5], row[6], row[8], row[9]):
                     # The farmer corrected their pick: replace, don't add.
                     self.db.execute(
                         "UPDATE reports SET source=?, confidence=?, unclear=?, state_pcode=?, "
@@ -181,11 +144,11 @@ class Surveillance:
         since = now - timedelta(days=RULES["window_days"] + RULES["baseline_days"])
         signals, self.watch = detect(self._reports(since), now, self.cards, self.neighbours)
         raised, live = [], set()
-        with self.lock, self.db:
+        with self.lock, self.db.transaction():
             for s in signals:
                 live.add((s.lga, s.card_id))
                 existing = self.db.execute(
-                    "SELECT * FROM alerts WHERE lga_pcode=? AND card_id IS ? AND status != 'closed' "
+                    "SELECT * FROM alerts WHERE lga_pcode=? AND card_id IS NOT DISTINCT FROM ? AND status != 'closed' "
                     "ORDER BY id DESC LIMIT 1", (s.lga, s.card_id)).fetchone()
                 fields = (s.kind, s.severity, s.farmers, s.reports, s.baseline_farmers,
                           json.dumps(s.neighbours), s.first_seen.isoformat(),
@@ -206,9 +169,9 @@ class Surveillance:
                 cur = self.db.execute(
                     "INSERT INTO alerts (lga_pcode, card_id, kind, severity, farmers, reports, "
                     "baseline_farmers, neighbours, first_seen, last_seen, updated_at, raised_at) "
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id",
                     (s.lga, s.card_id) + fields + (now.isoformat(),))
-                raised.append(cur.lastrowid)
+                raised.append(cur.fetchone()["id"])
             quiet_since = (now - timedelta(days=RULES["window_days"])).isoformat()
             for row in self.db.execute(
                     "SELECT id, lga_pcode, card_id FROM alerts WHERE status != 'closed' "
@@ -234,13 +197,16 @@ class Surveillance:
 
     # ------------------------------------------------------------------ review
 
-    def review(self, alert_id, status, note):
+    def review(self, alert_id, status, note, officer=None):
         if status not in ("confirmed", "dismissed"):
             raise ValueError("status must be confirmed or dismissed")
-        with self.lock, self.db:
+        if not isinstance(note, str) or len(note) > 2000:
+            raise ValueError("note must be text, at most 2000 characters")
+        with self.lock, self.db.transaction():
             cur = self.db.execute(
-                "UPDATE alerts SET status=?, review_note=?, reviewed_at=?, farmers_at_review=farmers "
-                "WHERE id=?", (status, note, utcnow().isoformat(), alert_id))
+                "UPDATE alerts SET status=?, review_note=?, reviewed_at=?, reviewed_by=?, "
+                "farmers_at_review=farmers WHERE id=?",
+                (status, note, utcnow().isoformat(), officer, alert_id))
         if not cur.rowcount:
             raise KeyError(alert_id)
         return self.alert(alert_id)
@@ -279,8 +245,8 @@ class Surveillance:
         start = (datetime.fromisoformat(end) - timedelta(days=RULES["window_days"])).isoformat()
         credible = ("unclear=1" if row["card_id"] is None else
                     "unclear=0 AND (source='lite' OR confidence IN ('medium','high'))")
-        kinds = {sim for (sim,) in self.db.execute(
-            f"SELECT DISTINCT simulated FROM reports WHERE lga_pcode=? AND card_id IS ? "
+        kinds = {r["simulated"] for r in self.db.execute(
+            f"SELECT DISTINCT simulated FROM reports WHERE lga_pcode=? AND card_id IS NOT DISTINCT FROM ? "
             f"AND {credible} AND reported_at >= ? AND reported_at <= ?",
             (row["lga_pcode"], row["card_id"], start, end))}
         if kinds == {1}:
